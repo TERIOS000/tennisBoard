@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 
 type SelectedSlot = {
@@ -89,7 +88,6 @@ const days = [
 
 export default function Home() {
   const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
-
   return (
     <main className="board">
       <header className="board-header">
@@ -118,12 +116,14 @@ export default function Home() {
                   className="slot-row"
                   key={slot.time}
                   type="button"
-                  onClick={() =>
-                    setSelectedSlot({ date: day.date, time: slot.time })
+                  onClick={() => setSelectedSlot({
+                    date: day.date,
+                    time: slot.time
+                  })
                   }
                 >
                   <time>{slot.time}</time>
-                  
+
                   <span className="court-name">
                     {slot.courts.length > 0
                       ? slot.courts.join(" , ")
@@ -137,19 +137,21 @@ export default function Home() {
       </section>
 
       {selectedSlot && (
-        <section className="slot-editor" aria-label="Edit selected slot">
-          <div>
-            <p className="editor-label">Selected slot</p>
-            <h2>
-              {selectedSlot.date} at {selectedSlot.time}
-            </h2>
-          </div>
+        <section className="slot-editor">
+          <p>Selected slot</p>
 
-          <button type="button" onClick={() => setSelectedSlot(null)}>
+          <h2>
+            {selectedSlot.date} at {selectedSlot.time}
+          </h2>
+          <button
+            type="button"
+            onClick={() => setSelectedSlot(null)}
+          >
             Cancel
           </button>
         </section>
       )}
+
     </main>
   );
 }

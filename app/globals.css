@@ -64,13 +64,6 @@ body {
 }
 
 .slot-row {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
   display: grid;
   grid-template-columns: 80px 1fr;
   gap: 16px;
@@ -82,64 +75,12 @@ body {
   border-bottom: 0;
 }
 
-.slot-row:hover {
-  background: #f7faf8;
-}
-
-.slot-row:focus-visible {
-  outline: 3px solid #198754;
-  outline-offset: -3px;
-}
-
 .slot-row time {
   color: #657068;
 }
 
 .court-name {
   font-weight: 700;
-}
-
-.slot-editor {
-  position: sticky;
-  bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 24px;
-  padding: 16px;
-  border: 1px solid #198754;
-  border-radius: 12px;
-  background: white;
-  box-shadow: 0 8px 24px rgb(23 34 27 / 14%);
-}
-
-.slot-editor h2,
-.slot-editor p {
-  margin: 0;
-}
-
-.slot-editor h2 {
-  margin-top: 4px;
-  font-size: 1rem;
-}
-
-.editor-label {
-  color: #657068;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.slot-editor button {
-  padding: 10px 16px;
-  border: 1px solid #b9c6bd;
-  border-radius: 8px;
-  background: white;
-  color: #17221b;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 @media (min-width: 700px) {
