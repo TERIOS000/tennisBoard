@@ -6,8 +6,13 @@ import { ChangeEvent, useMemo, useState, useSyncExternalStore } from "react";
 type Slot = {
   time: string;
   courts: string[];
-  qrImageUrl?: string | null;
+  qrImages?: QrImage[];
   updatedAt?: string | null;
+};
+
+type QrImage = {
+  url: string;
+  name: string;
 };
 
 type Day = {
@@ -169,20 +174,22 @@ export default function Home() {
   const boardDays = editedBoardDays ?? generatedDays;
   const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
   const [selectedCourts, setSelectedCourts] = useState<string[]>([]);
-  const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
+  const [qrImages, setQrImages] = useState<QrImage[]>([]);
+  const [viewedImage, setViewedImage] = useState<QrImage | null>(null);
   const [imageError, setImageError] = useState("");
 
   function openEditor(day: Day, slot: Slot) {
     setSelectedSlot({ date: day.date, label: day.label, time: slot.time });
     setSelectedCourts([...slot.courts]);
-    setQrImageUrl(slot.qrImageUrl ?? null);
+    setQrImages(slot.qrImages ?? []);
     setImageError("");
   }
 
   function closeEditor() {
     setSelectedSlot(null);
     setSelectedCourts([]);
-    setQrImageUrl(null);
+    setQrImages([]);
+    setViewedImage(null);
     setImageError("");
   }
 
@@ -194,7 +201,7 @@ export default function Home() {
     );
   }
 
-  function updateSelectedSlot(courts: string[], imageUrl: string | null) {
+  function updateSelectedSlot(courts: string[], images: QrImage[]) {
     if (!selectedSlot) return;
 
     const updatedAt = new Date().toLocaleTimeString("en-GB", {
@@ -215,7 +222,7 @@ export default function Home() {
                   : {
                       ...slot,
                       courts: [...courts].sort(),
-                      qrImageUrl: imageUrl,
+                      qrImages: images,
                       updatedAt,
                     }
               ),
@@ -225,43 +232,62 @@ export default function Home() {
   }
 
   function saveSlot() {
-    updateSelectedSlot(selectedCourts, qrImageUrl);
+    updateSelectedSlot(selectedCourts, qrImages);
     closeEditor();
   }
 
   function clearSlot() {
-    if (!window.confirm("Clear all courts and the QR image from this slot?")) {
+    if (!window.confirm("Clear all courts and QR images from this slot?")) {
       return;
     }
 
-    updateSelectedSlot([], null);
+    updateSelectedSlot([], []);
     closeEditor();
   }
 
   function handleQrChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files ?? []);
 
-    if (!file) return;
+    if (files.length === 0) return;
 
-    if (!allowedImageTypes.includes(file.type)) {
-      setImageError("Choose a JPEG, PNG, or WebP image.");
+    const invalidType = files.find(
+      (file) => !allowedImageTypes.includes(file.type)
+    );
+    const oversizedFile = files.find((file) => file.size > maxImageSize);
+
+    if (invalidType) {
+      setImageError(`${invalidType.name} is not a JPEG, PNG, or WebP image.`);
       event.target.value = "";
       return;
     }
 
-    if (file.size > maxImageSize) {
-      setImageError("The image must be 5 MB or smaller.");
+    if (oversizedFile) {
+      setImageError(`${oversizedFile.name} is larger than 5 MB.`);
       event.target.value = "";
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setQrImageUrl(typeof reader.result === "string" ? reader.result : null);
-      setImageError("");
-    };
-    reader.onerror = () => setImageError("The image could not be read.");
-    reader.readAsDataURL(file);
+    Promise.all(
+      files.map(
+        (file) =>
+          new Promise<QrImage>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () =>
+              typeof reader.result === "string"
+                ? resolve({ url: reader.result, name: file.name })
+                : reject(new Error("Invalid image result"));
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+          })
+      )
+    )
+      .then((newImages) => {
+        setQrImages((currentImages) => [...currentImages, ...newImages]);
+        setImageError("");
+      })
+      .catch(() => setImageError("One or more images could not be read."));
+
+    event.target.value = "";
   }
 
   return (
@@ -297,7 +323,9 @@ export default function Home() {
                     {slot.courts.length > 0 ? slot.courts.join(" , ") : "—"}
                   </span>
                   <span className="slot-meta">
-                    {slot.qrImageUrl && <span className="qr-badge">QR</span>}
+                    {slot.qrImages && slot.qrImages.length > 0 && (
+                      <span className="qr-badge">{slot.qrImages.length} QR</span>
+                    )}
                     {slot.updatedAt && <small>Updated {slot.updatedAt}</small>}
                   </span>
                 </button>
@@ -354,29 +382,51 @@ export default function Home() {
             </fieldset>
 
             <div className="qr-field">
-              <label htmlFor="qr-image">Booking QR image (optional)</label>
+              <label htmlFor="qr-image">Booking QR images (optional)</label>
               <input
                 id="qr-image"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
+                multiple
                 onChange={handleQrChange}
               />
               <small>JPEG, PNG, or WebP · maximum 5 MB</small>
               {imageError && <p className="field-error">{imageError}</p>}
             </div>
 
-            {qrImageUrl && (
-              <div className="qr-preview">
-                <Image
-                  src={qrImageUrl}
-                  alt="Selected booking QR preview"
-                  width={280}
-                  height={280}
-                  unoptimized
-                />
-                <button type="button" onClick={() => setQrImageUrl(null)}>
-                  Remove image
-                </button>
+            {qrImages.length > 0 && (
+              <div className="qr-gallery" aria-label="Selected QR images">
+                {qrImages.map((image, index) => (
+                  <div className="qr-preview" key={`${image.name}-${index}`}>
+                    <button
+                      className="qr-thumbnail"
+                      type="button"
+                      onClick={() => setViewedImage(image)}
+                      aria-label={`View ${image.name} larger`}
+                    >
+                      <Image
+                        src={image.url}
+                        alt=""
+                        width={180}
+                        height={180}
+                        unoptimized
+                      />
+                    </button>
+                    <p title={image.name}>{image.name}</p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setQrImages((currentImages) =>
+                          currentImages.filter(
+                            (_, itemIndex) => itemIndex !== index
+                          )
+                        )
+                      }
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -393,6 +443,39 @@ export default function Home() {
                 </button>
               </div>
             </div>
+          </section>
+        </div>
+      )}
+
+      {viewedImage && (
+        <div className="image-viewer-backdrop">
+          <section
+            className="image-viewer"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="image-viewer-title"
+          >
+            <header>
+              <h2 id="image-viewer-title">{viewedImage.name}</h2>
+              <button
+                className="icon-button"
+                type="button"
+                onClick={() => setViewedImage(null)}
+                aria-label="Close image viewer"
+              >
+                ×
+              </button>
+            </header>
+            <Image
+              src={viewedImage.url}
+              alt={`Large preview of ${viewedImage.name}`}
+              width={1200}
+              height={1200}
+              unoptimized
+            />
+            <a href={viewedImage.url} download={viewedImage.name}>
+              Save image
+            </a>
           </section>
         </div>
       )}

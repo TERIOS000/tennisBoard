@@ -245,22 +245,49 @@ button {
   font-weight: 700;
 }
 
-.qr-preview {
+.qr-gallery {
   display: grid;
-  justify-items: center;
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
   margin-bottom: 20px;
+}
+
+.qr-preview {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 10px;
   padding: 16px;
   border: 1px solid #d9e2dc;
   border-radius: 12px;
   background: #f7faf8;
 }
 
-.qr-preview img {
-  width: min(100%, 280px);
-  height: auto;
+.qr-thumbnail {
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  background: white;
+}
+
+.qr-thumbnail img {
+  display: block;
+  width: 100%;
+  height: 140px;
   border-radius: 8px;
   object-fit: contain;
+}
+
+.qr-preview p {
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.8rem;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .qr-preview button,
@@ -297,6 +324,61 @@ button {
   border-color: #198754;
   background: #198754;
   color: white;
+}
+
+.image-viewer-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  padding: 16px;
+  overflow-y: auto;
+  background: rgb(0 0 0 / 82%);
+  place-items: center;
+}
+
+.image-viewer {
+  width: min(100%, 900px);
+  padding: 16px;
+  border-radius: 16px;
+  background: white;
+}
+
+.image-viewer header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.image-viewer h2 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-viewer > img {
+  display: block;
+  width: 100%;
+  max-height: calc(100vh - 180px);
+  height: auto;
+  object-fit: contain;
+}
+
+.image-viewer > a {
+  display: block;
+  width: fit-content;
+  min-height: 44px;
+  margin: 12px auto 0;
+  padding: 11px 16px;
+  border-radius: 8px;
+  background: #198754;
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 @media (min-width: 600px) {
