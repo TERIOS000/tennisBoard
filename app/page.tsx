@@ -68,7 +68,7 @@ const copy = {
     qrImages: "Booking QR images (optional)",
     imageHelp: "JPEG, PNG, or WebP · maximum 5 MB each",
     selectedImages: "Selected QR images",
-    viewImages: (count: number) => `${count} QR`,
+    viewImages: (count: number) => `View ${count} QR`,
     viewNamedImage: (name: string) => `View ${name} larger`,
     remove: "Remove",
     removeImage: (name: string) => `Remove ${name}?`,
@@ -109,7 +109,7 @@ const copy = {
     qrImages: "รูป QR การจอง (ไม่บังคับ)",
     imageHelp: "JPEG, PNG หรือ WebP · ไม่เกิน 5 MB ต่อรูป",
     selectedImages: "รูป QR ที่เลือก",
-    viewImages: (count: number) => `${count} QR`,
+    viewImages: (count: number) => `ดู QR ${count} รูป`,
     viewNamedImage: (name: string) => `ดู ${name} แบบขยาย`,
     remove: "ลบ",
     removeImage: (name: string) => `ลบ ${name} หรือไม่`,
@@ -514,11 +514,52 @@ export default function Home() {
 
   const currentImage = lightbox?.images[lightbox.index];
 
+  function scrollToToday() {
+    todayRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function renderCourts(slot: Slot) {
+    return slot.courts.length > 0 ? slot.courts.join(", ") : "—";
+  }
+
+  function renderSlotActions(day: Day, slot: Slot) {
+    const images = slot.qrImages ?? [];
+
+    return (
+      <span className="slot-actions">
+        {images.length > 0 && (
+          <button
+            className="qr-action"
+            type="button"
+            onClick={() =>
+              setGallery({ date: day.date, label: day.label, time: slot.time, images })
+            }
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Zm2 11.7 3.4-3.4 2.3 2.3 3.8-4.6 2.5 3V6H6v11.2ZM9 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+            </svg>
+            {t.viewImages(images.length)}
+          </button>
+        )}
+        <button
+          className="edit-button"
+          type="button"
+          onClick={() => openEditor(day, slot)}
+          aria-label={t.editLabel(day.label, slot.time)}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="m16.9 3.6 3.5 3.5a1.4 1.4 0 0 1 0 2L9.2 20.3 3 21l.7-6.2L14.9 3.6a1.4 1.4 0 0 1 2 0ZM6 15.8l-.3 2.5 2.5-.3 9.3-9.3-2.2-2.2L6 15.8Z" />
+          </svg>
+          {t.edit}
+        </button>
+      </span>
+    );
+  }
+
   return (
     <main className="board">
       <header className="board-header">
         <div>
-          <p className="date-range">{formatDateRange(boardDays, language)}</p>
           <h1>{t.appName}</h1>
           <p>{t.subtitle}</p>
         </div>
@@ -545,7 +586,7 @@ export default function Home() {
             ไทย
           </button>
           </fieldset>
-          <button type="button" onClick={() => todayRef.current?.scrollIntoView({ behavior: "smooth" })}>
+          <button type="button" onClick={scrollToToday}>
             {t.todayShortcut}
           </button>
         </div>
@@ -563,39 +604,16 @@ export default function Home() {
               {day.label}
             </h2>
             <div className="slot-list">
-              {day.slots.map((slot) => {
-                const images = slot.qrImages ?? [];
-                return (
+              {day.slots.map((slot) => (
                   <div className="slot-row" key={slot.time}>
                     <time>{slot.time}</time>
-                    <span className="court-name">
-                      {slot.courts.length > 0 ? slot.courts.join(", ") : "—"}
-                    </span>
+                    <span className="court-name">{renderCourts(slot)}</span>
                     <span className="slot-meta">
-                      {images.length > 0 && (
-                        <button
-                          className="qr-badge"
-                          type="button"
-                          onClick={() =>
-                            setGallery({ date: day.date, label: day.label, time: slot.time, images })
-                          }
-                        >
-                          {t.viewImages(images.length)}
-                        </button>
-                      )}
                       {slot.updatedAt && <small>{t.updated(slot.updatedAt)}</small>}
                     </span>
-                    <button
-                      className="edit-button"
-                      type="button"
-                      onClick={() => openEditor(day, slot)}
-                      aria-label={t.editLabel(day.label, slot.time)}
-                    >
-                      {t.edit}
-                    </button>
+                    {renderSlotActions(day, slot)}
                   </div>
-                );
-              })}
+              ))}
             </div>
           </article>
         ))}
