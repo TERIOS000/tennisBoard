@@ -1,65 +1,155 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+
+type SelectedSlot = {
+  date: string;
+  time: string;
+};
+
+const days = [
+  {
+    date: "19/07/2026",
+    label: "Sunday 19 Jul",
+    isToday: true,
+    slots: [
+      { time: "18:00", courts: ["Court 4"] },
+      { time: "19:00", courts: ["Court 3", "Court 4"] },
+      { time: "20:00", courts: [] },
+    ],
+  },
+
+  {
+    date: "20/07/2026",
+    label: "Monday 20 Jul",
+    isToday: false,
+    slots: [
+      { time: "18:00", courts: ["Court 4"] },
+      { time: "19:00", courts: ["Court 4"] },
+      { time: "20:00", courts: [] },
+    ],
+  },
+
+  {
+    date: "21/07/2026",
+    label: "Tuesday 21 Jul",
+    isToday: false,
+    slots: [
+      { time: "18:00", courts: ["Court 4"] },
+      { time: "19:00", courts: [] },
+      { time: "20:00", courts: ["Court 4"] },
+    ],
+  },
+
+  {
+    date: "22/07/2026",
+    label: "Wednesday 22 Jul",
+    isToday: false,
+    slots: [
+      { time: "18:00", courts: ["Court 4"] },
+      { time: "19:00", courts: ["Court 2"] },
+      { time: "20:00", courts: [] },
+    ],
+  },
+
+  {
+    date: "23/07/2026",
+    label: "Thursday 23 Jul",
+    isToday: false,
+    slots: [
+      { time: "18:00", courts: [] },
+      { time: "19:00", courts: ["Court 4"] },
+      { time: "20:00", courts: [] },
+    ],
+  },
+
+  {
+    date: "24/07/2026",
+    label: "Friday 24 Jul",
+    isToday: false,
+    slots: [
+      { time: "18:00", courts: [] },
+      { time: "19:00", courts: ["Court 4"] },
+      { time: "20:00", courts: [] },
+    ],
+  },
+
+  {
+    date: "25/07/2026",
+    label: "Saturday 25 Jul",
+    isToday: false,
+    slots: [
+      { time: "18:00", courts: [] },
+      { time: "19:00", courts: ["Court 4"] },
+      { time: "20:00", courts: [] },
+    ],
+  },
+]
+
 
 export default function Home() {
+  const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="board">
+      <header className="board-header">
+        <p className="date-range">19-25 July 2026</p>
+        <h1>Tennis Board</h1>
+        <p>Courts reserved by our group</p>
+      </header>
+
+      <section
+        className="day-list"
+        aria-label="Weekly tennis court schedule"
+      >
+        {days.map((day) => (
+          <article
+            className={`day-card ${day.isToday ? "today" : ""}`}
+            key={day.date}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <h2>
+              {day.isToday && <span className="today-label">Today · </span>}
+              {day.label}
+            </h2>
+
+            <div className="slot-list">
+              {day.slots.map((slot) => (
+                <button
+                  className="slot-row"
+                  key={slot.time}
+                  type="button"
+                  onClick={() =>
+                    setSelectedSlot({ date: day.date, time: slot.time })
+                  }
+                >
+                  <time>{slot.time}</time>
+                  
+                  <span className="court-name">
+                    {slot.courts.length > 0
+                      ? slot.courts.join(" , ")
+                      : "-"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </article>
+        ))}
+      </section>
+
+      {selectedSlot && (
+        <section className="slot-editor" aria-label="Edit selected slot">
+          <div>
+            <p className="editor-label">Selected slot</p>
+            <h2>
+              {selectedSlot.date} at {selectedSlot.time}
+            </h2>
+          </div>
+
+          <button type="button" onClick={() => setSelectedSlot(null)}>
+            Cancel
+          </button>
+        </section>
+      )}
+    </main>
   );
 }

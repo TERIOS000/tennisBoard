@@ -1,26 +1,149 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  margin: 0;
+  background: #f3f6f4;
+  color: #17221b;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.board {
+  width: min(100% - 32px, 900px);
+  margin: 0 auto;
+  padding: 32px 0;
+}
+
+.board-header {
+  margin-bottom: 24px;
+}
+
+.board-header h1 {
+  margin: 4px 0;
+  font-size: 2rem;
+}
+
+.board-header p {
+  margin: 0;
+  color: #657068;
+}
+
+.date-range {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.day-list {
+  display: grid;
+  gap: 16px;
+}
+
+.day-card {
+  overflow: hidden;
+  border: 1px solid #d9e2dc;
+  border-radius: 12px;
+  background: white;
+}
+
+.day-card h2 {
+  margin: 0;
+  padding: 16px;
+  border-bottom: 1px solid #e5ebe7;
+  font-size: 1.1rem;
+}
+
+.day-card.today {
+  border-color: #198754;
+}
+
+.today-label {
+  color: #198754;
+}
+
+.slot-row {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.slot-row:last-child {
+  border-bottom: 0;
+}
+
+.slot-row:hover {
+  background: #f7faf8;
+}
+
+.slot-row:focus-visible {
+  outline: 3px solid #198754;
+  outline-offset: -3px;
+}
+
+.slot-row time {
+  color: #657068;
+}
+
+.court-name {
+  font-weight: 700;
+}
+
+.slot-editor {
+  position: sticky;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid #198754;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(23 34 27 / 14%);
+}
+
+.slot-editor h2,
+.slot-editor p {
+  margin: 0;
+}
+
+.slot-editor h2 {
+  margin-top: 4px;
+  font-size: 1rem;
+}
+
+.editor-label {
+  color: #657068;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.slot-editor button {
+  padding: 10px 16px;
+  border: 1px solid #b9c6bd;
+  border-radius: 8px;
+  background: white;
+  color: #17221b;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (min-width: 700px) {
+  .day-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
