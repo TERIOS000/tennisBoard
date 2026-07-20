@@ -6,7 +6,9 @@ describe("PWA manifest", () => {
     expect(manifest()).toMatchObject({
       name: "Tennis Board",
       short_name: "Tennis Board",
+      id: "/",
       start_url: "/",
+      scope: "/",
       display: "standalone",
       orientation: "portrait-primary",
       background_color: "#f3f6f4",

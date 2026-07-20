@@ -4,8 +4,10 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Tennis Board",
     short_name: "Tennis Board",
+    id: "/",
     description: "View and update the tennis courts reserved by our group.",
     start_url: "/",
+    scope: "/",
     display: "standalone",
     orientation: "portrait-primary",
     background_color: "#f3f6f4",

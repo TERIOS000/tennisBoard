@@ -58,6 +58,11 @@ type NavigatorWithStandalone = Navigator & {
   standalone?: boolean;
 };
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+};
+
 const copy = {
   en: {
     appName: "Tennis Board",
@@ -316,8 +321,38 @@ export default function Home() {
   const [boardError, setBoardError] = useState("");
   const [isOffline, setIsOffline] = useState(false);
   const [isInstallHelpOpen, setIsInstallHelpOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [retryKey, setRetryKey] = useState(0);
   const todayRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    function saveInstallPrompt(event: Event) {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    }
+
+    function clearInstallPrompt() {
+      setInstallPrompt(null);
+    }
+
+    window.addEventListener("beforeinstallprompt", saveInstallPrompt);
+    window.addEventListener("appinstalled", clearInstallPrompt);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", saveInstallPrompt);
+      window.removeEventListener("appinstalled", clearInstallPrompt);
+    };
+  }, []);
+
+  async function handleInstall() {
+    if (!installPrompt) {
+      setIsInstallHelpOpen(true);
+      return;
+    }
+
+    await installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+  }
 
   useEffect(() => {
     if (baseDays.length === 0) return;
@@ -559,7 +594,7 @@ export default function Home() {
           <button
             className="install-help-button"
             type="button"
-            onClick={() => setIsInstallHelpOpen(true)}
+            onClick={handleInstall}
             aria-label={t.installHelp}
             title={t.installHelp}
           >
