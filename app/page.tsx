@@ -584,6 +584,10 @@ export default function Home() {
         ))}
       </section>
 
+      <footer className="board-footer">
+        <p>Created by P.PSK 2026</p>
+      </footer>
+
       {selectedSlot && (
         <Dialog
           active={!lightbox}

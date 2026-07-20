@@ -138,6 +138,17 @@ button {
   gap: 16px;
 }
 
+.board-footer {
+  padding: 28px 0 4px;
+  color: #657068;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.board-footer p {
+  margin: 0;
+}
+
 .day-card {
   overflow: hidden;
   border: 1px solid #d9e2dc;
