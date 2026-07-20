@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "Tennis Board",
   description: "View and update the tennis courts reserved by our group.",
   applicationName: "Tennis Board",
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     title: "Tennis Board",
     description: "View the group's weekly reserved tennis courts.",

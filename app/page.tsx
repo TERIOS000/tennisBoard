@@ -52,6 +52,12 @@ type Lightbox = {
   index: number;
 };
 
+type InstallPlatform = "ios" | "android" | "desktop";
+
+type NavigatorWithStandalone = Navigator & {
+  standalone?: boolean;
+};
+
 const copy = {
   en: {
     appName: "Tennis Board",
@@ -97,6 +103,12 @@ const copy = {
     saveError: "Your changes could not be saved. Please try again.",
     offline: "You are offline. Reconnect before saving.",
     retry: "Try again",
+    installHelp: "Install Tennis Board",
+    installTitle: "Add Tennis Board to your home screen",
+    installIntro: "Keep the board one tap away without searching through LINE.",
+    installIos: "Tap Share, then choose Add to Home Screen.",
+    installAndroid: "Open your browser menu, then choose Install app or Add to Home screen.",
+    installDesktop: "Use the install icon in your address bar, or choose Install app from the browser menu.",
   },
   th: {
     appName: "ตารางเทนนิส",
@@ -143,6 +155,12 @@ const copy = {
     saveError: "ไม่สามารถบันทึกการเปลี่ยนแปลงได้ กรุณาลองอีกครั้ง",
     offline: "คุณออฟไลน์อยู่ กรุณาเชื่อมต่อก่อนบันทึก",
     retry: "ลองอีกครั้ง",
+    installHelp: "ติดตั้ง Tennis Board",
+    installTitle: "เพิ่ม Tennis Board ไปยังหน้าจอหลัก",
+    installIntro: "เปิดตารางได้ในแตะเดียวโดยไม่ต้องค้นหาจากแชต LINE",
+    installIos: "แตะปุ่มแชร์ แล้วเลือก เพิ่มไปยังหน้าจอโฮม",
+    installAndroid: "เปิดเมนูเบราว์เซอร์ แล้วเลือก ติดตั้งแอป หรือ เพิ่มไปยังหน้าจอหลัก",
+    installDesktop: "ใช้ไอคอนติดตั้งในแถบที่อยู่ หรือเลือก ติดตั้งแอป จากเมนูเบราว์เซอร์",
   },
 } as const;
 
@@ -163,6 +181,26 @@ function subscribeToLanguage(onChange: () => void) {
     window.removeEventListener("storage", onChange);
     window.removeEventListener(languageChangeEvent, onChange);
   };
+}
+
+function getInstallPlatform(): InstallPlatform {
+  const isIos =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return isIos ? "ios" : /Android/i.test(navigator.userAgent) ? "android" : "desktop";
+}
+
+function getStandaloneSnapshot() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as NavigatorWithStandalone).standalone === true
+  );
+}
+
+function subscribeToStandalone(onChange: () => void) {
+  const standaloneQuery = window.matchMedia("(display-mode: standalone)");
+  standaloneQuery.addEventListener("change", onChange);
+  return () => standaloneQuery.removeEventListener("change", onChange);
 }
 
 function useAccessibleDialog(
@@ -256,6 +294,8 @@ export default function Home() {
     getLanguageSnapshot,
     (): Language => "en"
   );
+  const isStandalone = useSyncExternalStore(subscribeToStandalone, getStandaloneSnapshot, () => false);
+  const installPlatform = isHydrated ? getInstallPlatform() : "desktop";
   const t = copy[language];
   const baseDays = useMemo(
     () => (isHydrated ? createDateRange(language) : []),
@@ -275,6 +315,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [boardError, setBoardError] = useState("");
   const [isOffline, setIsOffline] = useState(false);
+  const [isInstallHelpOpen, setIsInstallHelpOpen] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
   const todayRef = useRef<HTMLElement>(null);
 
@@ -514,6 +555,19 @@ export default function Home() {
           <h1>{t.appName}</h1>
           <p>{t.subtitle}</p>
         </div>
+        {!isStandalone && (
+          <button
+            className="install-help-button"
+            type="button"
+            onClick={() => setIsInstallHelpOpen(true)}
+            aria-label={t.installHelp}
+            title={t.installHelp}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm.1-5.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5ZM12 6.3c-2.1 0-3.6 1.3-3.7 3.2h2c.1-.8.7-1.4 1.7-1.4s1.7.5 1.7 1.3c0 .7-.4 1.1-1.3 1.7-1 .6-1.5 1.3-1.5 2.4h2c0-.5.3-.8 1.1-1.3 1-.7 1.8-1.5 1.8-2.9 0-1.8-1.5-3-3.8-3Z" />
+            </svg>
+          </button>
+        )}
       </header>
 
       <nav className="board-toolbar" aria-label={t.todayShortcut}>
@@ -587,6 +641,41 @@ export default function Home() {
       <footer className="board-footer">
         <p>Created by P.PSK 2026</p>
       </footer>
+
+      {isInstallHelpOpen && (
+        <Dialog
+          active
+          className="install-dialog"
+          labelledBy="install-title"
+          onClose={() => setIsInstallHelpOpen(false)}
+        >
+          <header className="editor-header">
+            <div>
+              <p>{t.installHelp}</p>
+              <h2 id="install-title">{t.installTitle}</h2>
+            </div>
+            <button
+              className="icon-button"
+              type="button"
+              onClick={() => setIsInstallHelpOpen(false)}
+              aria-label={t.close}
+            >
+              ×
+            </button>
+          </header>
+          <p className="install-intro">{t.installIntro}</p>
+          <div className="install-step">
+            <span aria-hidden="true">1</span>
+            <p>
+              {installPlatform === "ios"
+                ? t.installIos
+                : installPlatform === "android"
+                  ? t.installAndroid
+                  : t.installDesktop}
+            </p>
+          </div>
+        </Dialog>
+      )}
 
       {selectedSlot && (
         <Dialog

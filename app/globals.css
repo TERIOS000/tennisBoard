@@ -50,6 +50,25 @@ button {
   color: #657068;
 }
 
+.install-help-button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid #bdc9c0;
+  border-radius: 50%;
+  background: white;
+  color: #126c42;
+  place-items: center;
+}
+
+.install-help-button svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
 .language-switcher {
   display: flex;
   flex: 0 0 auto;
@@ -206,6 +225,7 @@ button {
 }
 
 .language-switcher button:focus-visible,
+.install-help-button:focus-visible,
 .board-toolbar button:focus-visible,
 .edit-button:focus-visible,
 .qr-action:focus-visible,
@@ -322,6 +342,47 @@ button {
   border-radius: 16px 16px 0 0;
   background: white;
   box-shadow: 0 16px 48px rgb(0 0 0 / 20%);
+}
+
+.install-dialog {
+  width: min(100%, 460px);
+  margin: auto;
+  padding: 20px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 20%);
+}
+
+.install-intro {
+  margin: 0 0 20px;
+  color: #657068;
+  line-height: 1.5;
+}
+
+.install-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #e8f6ed;
+  line-height: 1.5;
+}
+
+.install-step span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #198754;
+  color: white;
+  font-weight: 700;
+  place-items: center;
+}
+
+.install-step p {
+  margin: 2px 0 0;
 }
 
 .editor-header {
@@ -497,6 +558,7 @@ button {
 }
 
 .language-switcher button,
+.install-help-button,
 .board-toolbar > button,
 .qr-action,
 .edit-button,
@@ -508,6 +570,7 @@ button {
 }
 
 .language-switcher button:active,
+.install-help-button:active,
 .board-toolbar > button:active,
 .qr-action:active,
 .edit-button:active,
@@ -686,8 +749,7 @@ button {
   }
 
   .board-header {
-    align-items: stretch;
-    flex-direction: column;
+    align-items: flex-start;
   }
 
   .board-toolbar {
