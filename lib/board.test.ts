@@ -1,0 +1,41 @@
+import { describe, expect, it } from "vitest";
+import { clearBoardSlot, createDateRange, formatDateRange, mergeBoardRecords, updateBoardSlot } from "./board";
+
+describe("board domain", () => {
+  it("creates seven Bangkok dates with ISO ids and DD/MM/YYYY display values", () => {
+    const days = createDateRange("en", new Date("2026-07-19T18:30:00Z"));
+    expect(days).toHaveLength(7);
+    expect(days[0]).toMatchObject({ id: "2026-07-20", displayDate: "20/07/2026", isToday: true });
+    expect(days[6].id).toBe("2026-07-26");
+    expect(days.every((day) => day.slots.length === 3)).toBe(true);
+  });
+
+  it("crosses month and year boundaries", () => {
+    const days = createDateRange("en", new Date("2026-12-30T18:00:00Z"));
+    expect(days.map((day) => day.id)).toEqual([
+      "2026-12-31", "2027-01-01", "2027-01-02", "2027-01-03", "2027-01-04", "2027-01-05", "2027-01-06",
+    ]);
+  });
+
+  it("updates, sorts, and clears a slot immutably", () => {
+    const days = createDateRange("en", new Date("2026-07-20T05:00:00Z"));
+    const updated = updateBoardSlot(days, days[0].id, "19:00", ["C4", "C2"], []);
+    expect(updated[0].slots[1].courts).toEqual(["C2", "C4"]);
+    expect(days[0].slots[1].courts).toEqual([]);
+    expect(clearBoardSlot(updated, days[0].id, "19:00")[0].slots[1].courts).toEqual([]);
+  });
+
+  it("merges stored records into an empty date range", () => {
+    const days = createDateRange("en", new Date("2026-07-20T05:00:00Z"));
+    const merged = mergeBoardRecords(days, [{
+      dayId: days[0].id, time: "18:00", courts: ["C3"], qrImages: [], updatedAt: null, updatedBy: null,
+    }]);
+    expect(merged[0].slots[0].courts).toEqual(["C3"]);
+    expect(merged[0].slots[1].courts).toEqual([]);
+  });
+
+  it("formats a localized visible range", () => {
+    const days = createDateRange("en", new Date("2026-07-20T05:00:00Z"));
+    expect(formatDateRange(days, "en")).toContain("20 July 2026");
+  });
+});

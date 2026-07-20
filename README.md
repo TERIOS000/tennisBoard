@@ -1,5 +1,23 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Data modes
+
+The app uses an in-memory board with sample data when Firebase environment variables are absent. To enable shared persistence:
+
+1. Create a Firebase web project and copy `.env.example` to `.env.local`.
+2. Fill in all `NEXT_PUBLIC_FIREBASE_*` values.
+3. Enable Firestore, Cloud Storage, and Anonymous Authentication in Firebase.
+4. Register a reCAPTCHA v3 app for App Check and set `NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY`.
+5. Install the Firebase CLI, select the project, and deploy `firestore.rules` and `storage.rules`.
+
+The browser signs users in anonymously in the background. Reads are public; validated writes require an anonymous Firebase identity. A forwarded board link still grants practical editing access.
+
+Run the automated domain tests with:
+
+```bash
+npm test
+```
+
 ## Getting Started
 
 First, run the development server:

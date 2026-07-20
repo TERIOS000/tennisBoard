@@ -13,32 +13,34 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-
-type Language = "en" | "th";
-
-type QrImage = {
-  url: string;
-  name: string;
-};
-
-type Slot = {
-  time: string;
-  courts: string[];
-  qrImages?: QrImage[];
-  updatedAt?: string | null;
-};
-
-type Day = {
-  date: string;
-  label: string;
-  isToday: boolean;
-  slots: Slot[];
-};
+import {
+  allowedCourts,
+  allowedImageTypes,
+  boardTimeZone,
+  createDateRange,
+  formatDateRange,
+  maxImageSize,
+  mergeBoardRecords,
+  snapshotsMatch,
+  type Court,
+  type Day,
+  type Language,
+  type QrImage,
+  type Slot,
+  type SlotRecord,
+  type SlotTime,
+} from "@/lib/board";
+import { getBoardService } from "@/lib/get-board-service";
 
 type SelectedSlot = {
-  date: string;
+  id: string;
   label: string;
-  time: string;
+  time: SlotTime;
+};
+
+type EditorSnapshot = {
+  courts: Court[];
+  images: QrImage[];
 };
 
 type Gallery = SelectedSlot & {
@@ -48,11 +50,6 @@ type Gallery = SelectedSlot & {
 type Lightbox = {
   images: QrImage[];
   index: number;
-};
-
-type EditorSnapshot = {
-  courts: string[];
-  images: QrImage[];
 };
 
 const copy = {
@@ -96,6 +93,10 @@ const copy = {
       `${name} is not a JPEG, PNG, or WebP image.`,
     tooLarge: (name: string) => `${name} is larger than 5 MB.`,
     readError: "One or more images could not be read.",
+    boardError: "The board could not load. Try again.",
+    saveError: "Your changes could not be saved. Please try again.",
+    offline: "You are offline. Reconnect before saving.",
+    retry: "Try again",
   },
   th: {
     appName: "ตารางเทนนิส",
@@ -138,94 +139,18 @@ const copy = {
       `${name} ไม่ใช่ไฟล์ JPEG, PNG หรือ WebP`,
     tooLarge: (name: string) => `${name} มีขนาดเกิน 5 MB`,
     readError: "ไม่สามารถอ่านรูปอย่างน้อยหนึ่งรูปได้",
+    boardError: "ไม่สามารถโหลดตารางได้ กรุณาลองอีกครั้ง",
+    saveError: "ไม่สามารถบันทึกการเปลี่ยนแปลงได้ กรุณาลองอีกครั้ง",
+    offline: "คุณออฟไลน์อยู่ กรุณาเชื่อมต่อก่อนบันทึก",
+    retry: "ลองอีกครั้ง",
   },
 } as const;
 
-const allowedCourts = ["C1", "C2", "C3", "C4", "C5"];
-const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
-const maxImageSize = 5 * 1024 * 1024;
-const boardTimeZone = "Asia/Bangkok";
-const dayInMilliseconds = 24 * 60 * 60 * 1000;
 const subscribeToHydration = () => () => {};
 const languageStorageKey = "tennis-board-language";
 const languageChangeEvent = "tennis-board-language-change";
 const focusableSelector =
   'button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-const sampleDays: Pick<Day, "slots">[] = [
-  { slots: [{ time: "18:00", courts: ["C4"] }, { time: "19:00", courts: ["C3", "C4"] }, { time: "20:00", courts: [] }] },
-  { slots: [{ time: "18:00", courts: ["C4"] }, { time: "19:00", courts: ["C4"] }, { time: "20:00", courts: [] }] },
-  { slots: [{ time: "18:00", courts: ["C4"] }, { time: "19:00", courts: [] }, { time: "20:00", courts: ["C4"] }] },
-  { slots: [{ time: "18:00", courts: ["C4"] }, { time: "19:00", courts: ["C2"] }, { time: "20:00", courts: [] }] },
-  { slots: [{ time: "18:00", courts: [] }, { time: "19:00", courts: ["C4"] }, { time: "20:00", courts: [] }] },
-  { slots: [{ time: "18:00", courts: [] }, { time: "19:00", courts: ["C4"] }, { time: "20:00", courts: [] }] },
-  { slots: [{ time: "18:00", courts: [] }, { time: "19:00", courts: ["C4"] }, { time: "20:00", courts: [] }] },
-];
-
-function getBangkokDate(now = new Date()) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: boardTimeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(now);
-  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
-  return new Date(
-    Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day), 12)
-  );
-}
-
-function formatDateKey(date: Date) {
-  const day = String(date.getUTCDate()).padStart(2, "0");
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  return `${day}/${month}/${date.getUTCFullYear()}`;
-}
-
-function createBoardDays(language: Language, now = new Date()): Day[] {
-  const today = getBangkokDate(now);
-  const labelFormatter = new Intl.DateTimeFormat(language === "th" ? "th-TH" : "en-GB", {
-    timeZone: "UTC",
-    weekday: "long",
-    day: "numeric",
-    month: "short",
-  });
-
-  return sampleDays.map(({ slots }, index) => {
-    const date = new Date(today.getTime() + index * dayInMilliseconds);
-    return {
-      date: formatDateKey(date),
-      label: labelFormatter.format(date),
-      isToday: index === 0,
-      slots: slots.map((slot) => ({ ...slot, courts: [...slot.courts] })),
-    };
-  });
-}
-
-function parseDateKey(dateKey: string) {
-  const [day, month, year] = dateKey.split("/").map(Number);
-  return new Date(Date.UTC(year, month - 1, day, 12));
-}
-
-function formatDateRange(days: Day[], language: Language) {
-  if (days.length === 0) return "";
-  const start = parseDateKey(days[0].date);
-  const end = parseDateKey(days[days.length - 1].date);
-  const formatter = new Intl.DateTimeFormat(language === "th" ? "th-TH" : "en-GB", {
-    timeZone: "UTC",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-  return `${formatter.format(start)} – ${formatter.format(end)}`;
-}
-
-function snapshotsMatch(left: EditorSnapshot | null, courts: string[], images: QrImage[]) {
-  if (!left) return true;
-  return (
-    JSON.stringify(left.courts) === JSON.stringify(courts) &&
-    JSON.stringify(left.images) === JSON.stringify(images)
-  );
-}
 
 function getLanguageSnapshot(): Language {
   return window.localStorage.getItem(languageStorageKey) === "th" ? "th" : "en";
@@ -332,14 +257,14 @@ export default function Home() {
     (): Language => "en"
   );
   const t = copy[language];
-  const generatedDays = useMemo(
-    () => (isHydrated ? createBoardDays(language) : []),
+  const baseDays = useMemo(
+    () => (isHydrated ? createDateRange(language) : []),
     [isHydrated, language]
   );
-  const [editedBoardDays, setEditedBoardDays] = useState<Day[] | null>(null);
-  const boardDays = editedBoardDays ?? generatedDays;
+  const [records, setRecords] = useState<SlotRecord[]>([]);
+  const boardDays = useMemo(() => mergeBoardRecords(baseDays, records), [baseDays, records]);
   const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
-  const [selectedCourts, setSelectedCourts] = useState<string[]>([]);
+  const [selectedCourts, setSelectedCourts] = useState<Court[]>([]);
   const [qrImages, setQrImages] = useState<QrImage[]>([]);
   const [editorSnapshot, setEditorSnapshot] = useState<EditorSnapshot | null>(null);
   const [gallery, setGallery] = useState<Gallery | null>(null);
@@ -347,7 +272,36 @@ export default function Home() {
   const [imageError, setImageError] = useState("");
   const [notice, setNotice] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [boardError, setBoardError] = useState("");
+  const [isOffline, setIsOffline] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
   const todayRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (baseDays.length === 0) return;
+    return getBoardService().subscribe(baseDays.map((day) => day.id), {
+      onData(nextRecords) {
+        setRecords(nextRecords);
+        setIsLoading(false);
+      },
+      onError() {
+        setBoardError(copy[language].boardError);
+        setIsLoading(false);
+      },
+    });
+  }, [baseDays, language, retryKey]);
+
+  useEffect(() => {
+    const updateConnection = () => setIsOffline(!navigator.onLine);
+    updateConnection();
+    window.addEventListener("online", updateConnection);
+    window.addEventListener("offline", updateConnection);
+    return () => {
+      window.removeEventListener("online", updateConnection);
+      window.removeEventListener("offline", updateConnection);
+    };
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = language;
@@ -362,20 +316,12 @@ export default function Home() {
   function changeLanguage(nextLanguage: Language) {
     window.localStorage.setItem(languageStorageKey, nextLanguage);
     window.dispatchEvent(new Event(languageChangeEvent));
-    setEditedBoardDays((days) =>
-      days
-        ? days.map((day, index) => ({
-            ...day,
-            label: createBoardDays(nextLanguage)[index].label,
-          }))
-        : null
-    );
   }
 
   function openEditor(day: Day, slot: Slot) {
     const images = slot.qrImages ?? [];
     const courts = [...slot.courts];
-    setSelectedSlot({ date: day.date, label: day.label, time: slot.time });
+    setSelectedSlot({ id: day.id, label: day.label, time: slot.time });
     setSelectedCourts(courts);
     setQrImages(images);
     setEditorSnapshot({ courts, images });
@@ -400,7 +346,7 @@ export default function Home() {
     setImageError("");
   }
 
-  function toggleCourt(court: string) {
+  function toggleCourt(court: Court) {
     setSelectedCourts((current) =>
       current.includes(court)
         ? current.filter((item) => item !== court)
@@ -408,45 +354,42 @@ export default function Home() {
     );
   }
 
-  function updateSelectedSlot(courts: string[], images: QrImage[]) {
-    if (!selectedSlot) return;
-    const updatedAt = new Date().toLocaleTimeString(language === "th" ? "th-TH" : "en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: boardTimeZone,
-    });
-    setEditedBoardDays((currentDays) =>
-      (currentDays ?? boardDays).map((day) =>
-        day.date !== selectedSlot.date
-          ? day
-          : {
-              ...day,
-              slots: day.slots.map((slot) =>
-                slot.time !== selectedSlot.time
-                  ? slot
-                  : { ...slot, courts: [...courts].sort(), qrImages: images, updatedAt }
-              ),
-            }
-      )
-    );
+  async function saveSlot() {
+    if (isSubmitting || !selectedSlot) return;
+    if (isOffline) {
+      setImageError(t.offline);
+      return;
+    }
+    setIsSubmitting(true);
+    setImageError("");
+    try {
+      await getBoardService().saveSlot(selectedSlot.id, selectedSlot.time, selectedCourts, qrImages);
+      setNotice(t.saved);
+      finishEditor();
+    } catch {
+      setImageError(t.saveError);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
-  function saveSlot() {
-    if (isSubmitting) return;
+  async function clearSlot() {
+    if (isSubmitting || !selectedSlot || !window.confirm(t.clearConfirm)) return;
+    if (isOffline) {
+      setImageError(t.offline);
+      return;
+    }
     setIsSubmitting(true);
-    updateSelectedSlot(selectedCourts, qrImages);
-    setNotice(t.saved);
-    finishEditor();
-    setIsSubmitting(false);
-  }
-
-  function clearSlot() {
-    if (isSubmitting || !window.confirm(t.clearConfirm)) return;
-    setIsSubmitting(true);
-    updateSelectedSlot([], []);
-    setNotice(t.cleared);
-    finishEditor();
-    setIsSubmitting(false);
+    setImageError("");
+    try {
+      await getBoardService().clearSlot(selectedSlot.id, selectedSlot.time);
+      setNotice(t.cleared);
+      finishEditor();
+    } catch {
+      setImageError(t.saveError);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function removeImage(index: number) {
@@ -478,7 +421,7 @@ export default function Home() {
             const reader = new FileReader();
             reader.onload = () =>
               typeof reader.result === "string"
-                ? resolve({ url: reader.result, name: file.name })
+                ? resolve({ url: reader.result, name: file.name, file })
                 : reject(new Error("Invalid image result"));
             reader.onerror = () => reject(reader.error);
             reader.readAsDataURL(file);
@@ -522,6 +465,14 @@ export default function Home() {
     return slot.courts.length > 0 ? slot.courts.join(", ") : "—";
   }
 
+  function renderUpdatedAt(updatedAt: Date) {
+    return updatedAt.toLocaleTimeString(language === "th" ? "th-TH" : "en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: boardTimeZone,
+    });
+  }
+
   function renderSlotActions(day: Day, slot: Slot) {
     const images = slot.qrImages ?? [];
 
@@ -532,7 +483,7 @@ export default function Home() {
             className="qr-action"
             type="button"
             onClick={() =>
-              setGallery({ date: day.date, label: day.label, time: slot.time, images })
+              setGallery({ id: day.id, label: day.label, time: slot.time, images })
             }
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -593,15 +544,29 @@ export default function Home() {
       </nav>
 
       <section className="day-list" aria-label={t.scheduleLabel}>
+        {isLoading && <p role="status">Loading…</p>}
+        {boardError && (
+          <p role="alert">
+            {boardError}{" "}
+            <button type="button" onClick={() => {
+              setIsLoading(true);
+              setBoardError("");
+              setRetryKey((value) => value + 1);
+            }}>
+              {t.retry}
+            </button>
+          </p>
+        )}
+        {isOffline && <p role="status">{t.offline}</p>}
         {boardDays.map((day) => (
           <article
             className={`day-card ${day.isToday ? "today" : ""}`}
-            key={day.date}
+            key={day.id}
             ref={day.isToday ? todayRef : undefined}
           >
             <h2>
               {day.isToday && <span className="today-label">{t.today} · </span>}
-              {day.label}
+              {day.label} · {day.displayDate}
             </h2>
             <div className="slot-list">
               {day.slots.map((slot) => (
@@ -609,7 +574,7 @@ export default function Home() {
                     <time>{slot.time}</time>
                     <span className="court-name">{renderCourts(slot)}</span>
                     <span className="slot-meta">
-                      {slot.updatedAt && <small>{t.updated(slot.updatedAt)}</small>}
+                      {slot.updatedAt && <small>{t.updated(renderUpdatedAt(slot.updatedAt))}</small>}
                     </span>
                     {renderSlotActions(day, slot)}
                   </div>

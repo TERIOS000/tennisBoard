@@ -8,11 +8,11 @@ body {
   margin: 0;
   background: #f3f6f4;
   color: #17221b;
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 html[lang="th"] body {
-  font-family: var(--font-noto-sans-thai), var(--font-geist-sans), sans-serif;
+  font-family: "Tahoma", "Leelawadee UI", Arial, sans-serif;
   letter-spacing: normal;
 }
 

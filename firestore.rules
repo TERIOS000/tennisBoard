@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function validCourt(court) {
+      return court in ['C1', 'C2', 'C3', 'C4', 'C5'];
+    }
+    function validImage(image) {
+      return image is map
+        && image.keys().hasOnly(['name', 'path', 'url'])
+        && image.name is string && image.name.size() > 0 && image.name.size() <= 200
+        && image.path is string && image.path.size() > 0 && image.path.size() <= 500
+        && image.url is string && image.url.size() > 0 && image.url.size() <= 2000;
+    }
+    function validImages(images) {
+      return images is list && images.size() <= 10
+        && (images.size() < 1 || validImage(images[0]))
+        && (images.size() < 2 || validImage(images[1]))
+        && (images.size() < 3 || validImage(images[2]))
+        && (images.size() < 4 || validImage(images[3]))
+        && (images.size() < 5 || validImage(images[4]))
+        && (images.size() < 6 || validImage(images[5]))
+        && (images.size() < 7 || validImage(images[6]))
+        && (images.size() < 8 || validImage(images[7]))
+        && (images.size() < 9 || validImage(images[8]))
+        && (images.size() < 10 || validImage(images[9]));
+    }
+    match /days/{dayId}/slots/{slotId} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'anonymous'
+        && dayId.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && slotId in ['1800', '1900', '2000']
+        && request.resource.data.keys().hasOnly(['time', 'courts', 'qrImages', 'updatedAt', 'updatedBy'])
+        && request.resource.data.time in ['18:00', '19:00', '20:00']
+        && ((slotId == '1800' && request.resource.data.time == '18:00')
+          || (slotId == '1900' && request.resource.data.time == '19:00')
+          || (slotId == '2000' && request.resource.data.time == '20:00'))
+        && request.resource.data.courts is list
+        && request.resource.data.courts.size() <= 5
+        && request.resource.data.courts.toSet().hasOnly(['C1', 'C2', 'C3', 'C4', 'C5'])
+        && validImages(request.resource.data.qrImages)
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
+    }
+  }
+}
