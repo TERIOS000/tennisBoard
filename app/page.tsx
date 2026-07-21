@@ -666,7 +666,7 @@ export default function Home() {
       </section>
 
       <footer className="board-footer">
-        <p>Created by P.PSK 2026</p>
+        <p>© 2026 P.PSK. All rights reserved.</p>
       </footer>
 
       {isInstallHelpOpen && (
