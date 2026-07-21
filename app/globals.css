@@ -783,7 +783,8 @@ button {
   }
 
   .slot-meta small {
-    display: none;
+    font-size: 0.68rem;
+    line-height: 1.2;
   }
 
   .editor-actions {
