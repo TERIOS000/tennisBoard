@@ -158,6 +158,23 @@ export function formatDateRange(days: Day[], language: Language) {
   return `${formatter.format(new Date(`${days[0].id}T12:00:00Z`))} – ${formatter.format(new Date(`${days.at(-1)!.id}T12:00:00Z`))}`;
 }
 
+export function formatUpdatedAt(updatedAt: Date, language: Language, now = new Date()) {
+  const updatedDate = getBangkokDate(updatedAt);
+  const currentDate = getBangkokDate(now);
+  const daysAgo = Math.floor((currentDate.getTime() - updatedDate.getTime()) / dayInMilliseconds);
+
+  if (daysAgo <= 0) {
+    return updatedAt.toLocaleTimeString(language === "th" ? "th-TH" : "en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: boardTimeZone,
+    });
+  }
+
+  if (language === "th") return `${daysAgo} วันที่แล้ว`;
+  return `${daysAgo} day${daysAgo === 1 ? "" : "s"} ago`;
+}
+
 export function snapshotsMatch(
   left: { courts: Court[]; images: QrImage[] } | null,
   courts: Court[],

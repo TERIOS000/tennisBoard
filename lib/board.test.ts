@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { clearBoardSlot, createDateRange, formatDateRange, mergeBoardRecords, updateBoardSlot } from "./board";
+import {
+  clearBoardSlot,
+  createDateRange,
+  formatDateRange,
+  formatUpdatedAt,
+  mergeBoardRecords,
+  updateBoardSlot,
+} from "./board";
 
 describe("board domain", () => {
   it("creates seven Bangkok dates with ISO ids and DD/MM/YYYY display values", () => {
@@ -37,5 +44,42 @@ describe("board domain", () => {
   it("formats a localized visible range", () => {
     const days = createDateRange("en", new Date("2026-07-20T05:00:00Z"));
     expect(formatDateRange(days, "en")).toContain("20 July 2026");
+  });
+
+  describe("updated-at formatting", () => {
+    it("shows only the time for an update today", () => {
+      expect(formatUpdatedAt(
+        new Date("2026-07-21T07:30:00Z"),
+        "en",
+        new Date("2026-07-21T15:00:00Z")
+      )).toBe("14:30");
+    });
+
+    it("shows singular and plural calendar-day ages without a time", () => {
+      const now = new Date("2026-07-21T05:00:00Z");
+      expect(formatUpdatedAt(new Date("2026-07-20T16:00:00Z"), "en", now)).toBe("1 day ago");
+      expect(formatUpdatedAt(new Date("2026-07-19T16:00:00Z"), "en", now)).toBe("2 days ago");
+    });
+
+    it("uses Bangkok midnight when calculating the day age", () => {
+      const now = new Date("2026-07-20T17:05:00Z");
+      expect(formatUpdatedAt(new Date("2026-07-20T16:55:00Z"), "en", now)).toBe("1 day ago");
+    });
+
+    it("localizes older Thai updates", () => {
+      expect(formatUpdatedAt(
+        new Date("2026-07-19T05:00:00Z"),
+        "th",
+        new Date("2026-07-21T05:00:00Z")
+      )).toBe("2 วันที่แล้ว");
+    });
+
+    it("shows the time for future timestamps", () => {
+      expect(formatUpdatedAt(
+        new Date("2026-07-22T07:30:00Z"),
+        "en",
+        new Date("2026-07-21T05:00:00Z")
+      )).toBe("14:30");
+    });
   });
 });

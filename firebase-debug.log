@@ -1,0 +1,41 @@
+[debug] [2026-07-21T04:56:16.965Z] ----------------------------------------------------------------------
+[debug] [2026-07-21T04:56:16.967Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\gtavf\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules,storage
+[debug] [2026-07-21T04:56:16.967Z] CLI Version:   15.24.0
+[debug] [2026-07-21T04:56:16.967Z] Platform:      win32
+[debug] [2026-07-21T04:56:16.967Z] Node Version:  v24.15.0
+[debug] [2026-07-21T04:56:16.967Z] Detected Agent: unknown
+[debug] [2026-07-21T04:56:16.967Z] Time:          Tue Jul 21 2026 11:56:16 GMT+0700 (Indochina Time)
+[debug] [2026-07-21T04:56:16.967Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-21T04:56:21.987Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-21T04:56:21.987Z] > authorizing via signed-in user (gtavfnaf@gmail.com)
+[debug] [2026-07-21T04:56:21.987Z] [iam] checking project tennisboard-f1b1e for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebaserules.releases.create","firebaserules.releases.update","firebaserules.rulesets.create"]
+[debug] [2026-07-21T04:56:21.996Z] Checked if tokens are valid: true, expires at: 1784613359148
+[debug] [2026-07-21T04:56:21.996Z] Checked if tokens are valid: true, expires at: 1784613359148
+[debug] [2026-07-21T04:56:21.997Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/tennisboard-f1b1e:testIamPermissions [none]
+[debug] [2026-07-21T04:56:21.997Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/tennisboard-f1b1e:testIamPermissions  x-goog-user-project=tennisboard-f1b1e
+[debug] [2026-07-21T04:56:21.997Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/tennisboard-f1b1e:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebaserules.releases.create","firebaserules.releases.update","firebaserules.rulesets.create"]}
+[debug] [2026-07-21T04:56:23.223Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/tennisboard-f1b1e:testIamPermissions 200
+[debug] [2026-07-21T04:56:23.223Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/tennisboard-f1b1e:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebaserules.releases.create","firebaserules.releases.update","firebaserules.rulesets.create"]}
+[info] 
+[info] === Deploying to 'tennisboard-f1b1e'...
+[info] 
+[info] i  deploying storage, firestore 
+[info] i  storage: ensuring required API firebasestorage.googleapis.com is enabled... 
+[debug] [2026-07-21T04:56:23.226Z] Checked if tokens are valid: true, expires at: 1784613359148
+[debug] [2026-07-21T04:56:23.226Z] Checked if tokens are valid: true, expires at: 1784613359148
+[debug] [2026-07-21T04:56:23.226Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/tennisboard-f1b1e/services/firebasestorage.googleapis.com [none]
+[debug] [2026-07-21T04:56:23.226Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/tennisboard-f1b1e/services/firebasestorage.googleapis.com  x-goog-user-project=tennisboard-f1b1e
+[debug] [2026-07-21T04:56:24.691Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/tennisboard-f1b1e/services/firebasestorage.googleapis.com 200
+[debug] [2026-07-21T04:56:24.692Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/tennisboard-f1b1e/services/firebasestorage.googleapis.com [omitted]
+[info] +  storage: required API firebasestorage.googleapis.com is enabled 
+[debug] [2026-07-21T04:56:24.696Z] Checked if tokens are valid: true, expires at: 1784613359148
+[debug] [2026-07-21T04:56:24.696Z] Checked if tokens are valid: true, expires at: 1784613359148
+[debug] [2026-07-21T04:56:24.697Z] >>> [apiv2][query] GET https://firebasestorage.googleapis.com/v1alpha/projects/tennisboard-f1b1e/defaultBucket [none]
+[debug] [2026-07-21T04:56:25.291Z] <<< [apiv2][status] GET https://firebasestorage.googleapis.com/v1alpha/projects/tennisboard-f1b1e/defaultBucket 200
+[debug] [2026-07-21T04:56:25.291Z] <<< [apiv2][body] GET https://firebasestorage.googleapis.com/v1alpha/projects/tennisboard-f1b1e/defaultBucket {"name":"projects/tennisboard-f1b1e/defaultBucket","location":"US-WEST1","bucket":{"name":"projects/tennisboard-f1b1e/buckets/tennisboard-f1b1e.firebasestorage.app"},"storageClass":"REGIONAL"}
+[info] i  firebase.storage: checking storage.rules for compilation errors... 
+[debug] [2026-07-21T04:56:25.292Z] Checked if tokens are valid: true, expires at: 1784613359148
+[debug] [2026-07-21T04:56:25.292Z] Checked if tokens are valid: true, expires at: 1784613359148
+[debug] [2026-07-21T04:56:25.292Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/tennisboard-f1b1e:test [none]
+[debug] [2026-07-21T04:56:25.292Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/tennisboard-f1b1e:test [omitted]

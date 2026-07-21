@@ -16,9 +16,9 @@ import {
 import {
   allowedCourts,
   allowedImageTypes,
-  boardTimeZone,
   createDateRange,
   formatDateRange,
+  formatUpdatedAt,
   maxImageSize,
   mergeBoardRecords,
   snapshotsMatch,
@@ -541,14 +541,6 @@ export default function Home() {
     return slot.courts.length > 0 ? slot.courts.join(", ") : "—";
   }
 
-  function renderUpdatedAt(updatedAt: Date) {
-    return updatedAt.toLocaleTimeString(language === "th" ? "th-TH" : "en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: boardTimeZone,
-    });
-  }
-
   function renderSlotActions(day: Day, slot: Slot) {
     const images = slot.qrImages ?? [];
 
@@ -663,7 +655,7 @@ export default function Home() {
                     <time>{slot.time}</time>
                     <span className="court-name">{renderCourts(slot)}</span>
                     <span className="slot-meta">
-                      {slot.updatedAt && <small>{t.updated(renderUpdatedAt(slot.updatedAt))}</small>}
+                      {slot.updatedAt && <small>{t.updated(formatUpdatedAt(slot.updatedAt, language))}</small>}
                     </span>
                     {renderSlotActions(day, slot)}
                   </div>
