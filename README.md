@@ -1,54 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tennis Board
 
-## Data modes
+Tennis Board is a mobile-friendly weekly schedule for a tennis group. It shows
+which courts are reserved for each evening time slot and lets group members
+update reservations and attach payment or booking QR images from one shared
+board.
 
-The app uses an in-memory board with sample data when Firebase environment variables are absent. To enable shared persistence:
+## Features
 
-1. Create a Firebase web project and copy `.env.example` to `.env.local`.
-2. Fill in all `NEXT_PUBLIC_FIREBASE_*` values.
-3. Enable Firestore, Cloud Storage, and Anonymous Authentication in Firebase.
-4. Register a reCAPTCHA v3 app for App Check and set `NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY`.
-5. Install the Firebase CLI, select the project, and deploy `firestore.rules` and `storage.rules`.
+- Seven-day schedule based on the `Asia/Bangkok` time zone
+- Evening slots at 18:00, 19:00, and 20:00 for courts C1-C5
+- English and Thai interfaces
+- Shared real-time updates through Firebase
+- JPEG, PNG, and WebP QR-image uploads up to 5 MB each
+- Image gallery and full-size viewer
+- Offline detection and visible last-updated information
+- Installable Progressive Web App for mobile and desktop
+- Keyboard-accessible dialogs and responsive layouts
+- Local sample-data mode for development without Firebase
 
-The browser signs users in anonymously in the background. Reads are public; validated writes require an anonymous Firebase identity. A forwarded board link still grants practical editing access.
+## Technology
 
-Run the automated domain tests with:
-
-```bash
-npm test
-```
+- Next.js 16 and React 19
+- TypeScript and Tailwind CSS
+- Firebase Authentication, Cloud Firestore, Cloud Storage, and App Check
+- Vitest for domain tests
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies and start the development server:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev.
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). With no Firebase
+configuration, the app runs locally with in-memory sample data. Changes made in
+this mode are not shared and disappear when the page is reloaded.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Firebase Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+To enable a persistent board shared between users:
 
-## Learn More
+1. Create a Firebase web project.
+2. Copy `.env.example` to `.env.local` and provide every
+   `NEXT_PUBLIC_FIREBASE_*` value.
+3. Enable Cloud Firestore, Cloud Storage, and Anonymous Authentication.
+4. Register a reCAPTCHA v3 app for App Check and set
+   `NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY`.
+5. Install and authenticate the Firebase CLI, select your project, then deploy
+   the included security rules:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+firebase deploy --only firestore:rules,storage
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The app anonymously authenticates browsers before writes. Reads are public;
+writes and uploaded images are validated by `firestore.rules` and
+`storage.rules`. Anyone with access to a board link can practically edit the
+shared schedule, so configure and share deployments accordingly.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Available Scripts
 
-## Deploy on Vercel
+```bash
+npm run dev     # Start the development server
+npm run build   # Create a production build
+npm run start   # Run the production build
+npm run lint    # Run ESLint
+npm test        # Run the test suite once
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Tennis Board is available under the [MIT License](LICENSE). Use of the software
+is also subject to the accompanying [disclaimer](DISCLAIMER.md).

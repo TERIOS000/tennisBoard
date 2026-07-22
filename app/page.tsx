@@ -666,7 +666,7 @@ export default function Home() {
       </section>
 
       <footer className="board-footer">
-        <p>© 2026 P.PSK. All rights reserved.</p>
+        <p>© 2026 Terios.</p>
       </footer>
 
       {isInstallHelpOpen && (
