@@ -81,3 +81,4 @@ export const sendDailyReminders = onSchedule({
     time: occupied[0].time, courts: [], reminderSlots: occupied, actorUid: null,
   });
 });
+ 
