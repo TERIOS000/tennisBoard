@@ -1,5 +1,16 @@
 export type SlotData = { time?: string; courts?: unknown[]; qrImages?: unknown[]; updatedBy?: string };
 export type NotificationKind = "booking-created" | "booking-updated" | "booking-cleared";
+export const dailyReminderSchedule = "0 12,17 * * *";
+
+export function occupiedReminderSlots(slots: SlotData[]) {
+  return slots.flatMap((slot) => slot.time && slot.courts?.length
+    ? [{ time: slot.time, courts: slot.courts }]
+    : []).sort((left, right) => left.time.localeCompare(right.time));
+}
+
+export function dailyReminderId(dayId: string, hour: string) {
+  return `daily-reminder-${dayId}-${hour}`;
+}
 
 function courtNames(slot: SlotData | undefined) {
   return (slot?.courts ?? []).filter((court): court is string => typeof court === "string");
@@ -29,9 +40,10 @@ export function bangkokDate(now: Date) {
   return `${value.year}-${value.month}-${value.day}`;
 }
 
-export function shouldSendLateReminder(dayId: string, time: string, now: Date) {
-  const bangkok = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
-  const minutes = bangkok.getHours() * 60 + bangkok.getMinutes();
-  const [hour, minute] = time.split(":").map(Number);
-  return dayId === bangkokDate(now) && minutes >= 15 * 60 && minutes < hour * 60 + minute;
+export function bangkokHour(now: Date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Bangkok",
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).format(now);
 }
