@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import manifest from "./manifest";
 
 describe("PWA manifest", () => {
-  it("defines an installable standalone Tennis Board app", () => {
+  it("defines an installable standalone CourtRao app", () => {
     expect(manifest()).toMatchObject({
-      name: "Tennis Board",
-      short_name: "Tennis Board",
+      name: "CourtRao",
+      short_name: "CourtRao",
       id: "/",
       start_url: "/",
       scope: "/",

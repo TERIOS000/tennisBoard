@@ -9,14 +9,14 @@ const notoSansThai = Noto_Sans_Thai({
 });
 
 export const metadata: Metadata = {
-  title: "Tennis Board",
+  title: "CourtRao",
   description: "View and update the tennis courts reserved by our group.",
-  applicationName: "Tennis Board",
+  applicationName: "CourtRao",
   icons: {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Tennis Board",
+    title: "CourtRao",
     description: "View the group's weekly reserved tennis courts.",
     type: "website",
   },

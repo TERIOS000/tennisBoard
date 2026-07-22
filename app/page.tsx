@@ -67,7 +67,7 @@ type BeforeInstallPromptEvent = Event & {
 
 const copy = {
   en: {
-    appName: "Tennis Board",
+    appName: "CourtRao",
     subtitle: "Courts reserved by our group",
     today: "Today",
     todayShortcut: "Go to today",
@@ -110,15 +110,15 @@ const copy = {
     saveError: "Your changes could not be saved. Please try again.",
     offline: "You are offline. Reconnect before saving.",
     retry: "Try again",
-    installHelp: "Install Tennis Board",
-    installTitle: "Add Tennis Board to your home screen",
+    installHelp: "Install CourtRao",
+    installTitle: "Add CourtRao to your home screen",
     installIntro: "Keep the board one tap away without searching through LINE.",
     installIos: "Tap Share, then choose Add to Home Screen.",
     installAndroid: "Open your browser menu, then choose Install app or Add to Home screen.",
     installDesktop: "Use the install icon in your address bar, or choose Install app from the browser menu.",
   },
   th: {
-    appName: "ตารางเทนนิส",
+    appName: "คอร์ทเรา",
     subtitle: "คอร์ทที่กลุ่มของเราจองไว้",
     today: "วันนี้",
     todayShortcut: "ไปที่วันนี้",
@@ -162,8 +162,8 @@ const copy = {
     saveError: "ไม่สามารถบันทึกการเปลี่ยนแปลงได้ กรุณาลองอีกครั้ง",
     offline: "คุณออฟไลน์อยู่ กรุณาเชื่อมต่อก่อนบันทึก",
     retry: "ลองอีกครั้ง",
-    installHelp: "ติดตั้ง Tennis Board",
-    installTitle: "เพิ่ม Tennis Board ไปยังหน้าจอหลัก",
+    installHelp: "ติดตั้ง CourtRao",
+    installTitle: "เพิ่ม CourtRao ไปยังหน้าจอหลัก",
     installIntro: "เปิดตารางได้ในแตะเดียวโดยไม่ต้องค้นหาจากแชต LINE",
     installIos: "แตะปุ่มแชร์ แล้วเลือก เพิ่มไปยังหน้าจอโฮม",
     installAndroid: "เปิดเมนูเบราว์เซอร์ แล้วเลือก ติดตั้งแอป หรือ เพิ่มไปยังหน้าจอหลัก",

@@ -1,5 +1,5 @@
 {
-  "name": "tennis-board-functions",
+  "name": "courtrao-functions",
   "private": true,
   "main": "lib/index.js",
   "engines": { "node": "22" },

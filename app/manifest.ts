@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Tennis Board",
-    short_name: "Tennis Board",
+    name: "CourtRao",
+    short_name: "CourtRao",
     id: "/",
     description: "View and update the tennis courts reserved by our group.",
     start_url: "/",

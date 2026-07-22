@@ -10,14 +10,14 @@ const labels = {
   en: {
     title: "Notifications", enable: "Enable push notifications", intro: "Get booking changes and a reminder at 3 PM on booking days.",
     empty: "No notifications from the last 7 days.", markAll: "Mark all as read", close: "Close notifications",
-    unsupported: "Push notifications are not supported on this browser. You can still read history here.", iosInstall: "On iPhone or iPad, install Tennis Board on your Home Screen before enabling push.",
+    unsupported: "Push notifications are not supported on this browser. You can still read history here.", iosInstall: "On iPhone or iPad, install CourtRao on your Home Screen before enabling push.",
     denied: "Push permission is blocked. Enable notifications in your browser settings to receive alerts.",
     enabled: "Push notifications are enabled.", error: "Notifications could not be updated. Try again.", local: "Push and shared history require Firebase configuration.",
   },
   th: {
     title: "การแจ้งเตือน", enable: "เปิดการแจ้งเตือน", intro: "รับแจ้งเมื่อการจองเปลี่ยนแปลง และเตือนเวลา 15:00 น. ในวันที่จอง",
     empty: "ไม่มีการแจ้งเตือนใน 7 วันที่ผ่านมา", markAll: "อ่านทั้งหมดแล้ว", close: "ปิดการแจ้งเตือน",
-    unsupported: "เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน แต่ยังดูประวัติได้ที่นี่", iosInstall: "บน iPhone หรือ iPad กรุณาเพิ่ม Tennis Board ไปยังหน้าจอโฮมก่อนเปิดการแจ้งเตือน",
+    unsupported: "เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน แต่ยังดูประวัติได้ที่นี่", iosInstall: "บน iPhone หรือ iPad กรุณาเพิ่ม CourtRao ไปยังหน้าจอโฮมก่อนเปิดการแจ้งเตือน",
     denied: "เบราว์เซอร์บล็อกการแจ้งเตือน กรุณาเปิดสิทธิ์ในการตั้งค่าเบราว์เซอร์",
     enabled: "เปิดการแจ้งเตือนแล้ว", error: "ไม่สามารถอัปเดตการแจ้งเตือนได้ กรุณาลองใหม่", local: "ต้องตั้งค่า Firebase เพื่อใช้การแจ้งเตือนและประวัติร่วมกัน",
   },

@@ -1,6 +1,6 @@
-# Tennis Board
+# CourtRao
 
-Tennis Board is a mobile-friendly weekly schedule for a tennis group. It shows
+CourtRao is a mobile-friendly weekly schedule for a tennis group. It shows
 which courts are reserved for each evening time slot and lets group members
 update reservations and attach payment or booking QR images from one shared
 board.
@@ -101,5 +101,5 @@ npm test        # Run the test suite once
 
 ## License
 
-Tennis Board is available under the [MIT License](LICENSE). Use of the software
+CourtRao is available under the [MIT License](LICENSE). Use of the software
 is also subject to the accompanying [disclaimer](DISCLAIMER.md).
