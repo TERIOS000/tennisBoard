@@ -17,13 +17,14 @@ board.
 - Installable Progressive Web App for mobile and desktop
 - Keyboard-accessible dialogs and responsive layouts
 - Local sample-data mode for development without Firebase
-- Browser push alerts and a seven-day notification inbox
+- Browser push summaries at 12:00 and 17:00 Asia/Bangkok, plus a seven-day notification inbox
 
 ## Technology
 
 - Next.js 16 and React 19
 - TypeScript and Tailwind CSS
-- Firebase Authentication, Cloud Firestore, Cloud Storage, and App Check
+- Firebase Authentication, Cloud Firestore, Cloud Storage, Cloud Messaging,
+  Cloud Functions, and App Check
 - Vitest for domain tests
 
 ## Getting Started
@@ -73,10 +74,15 @@ gcloud firestore fields ttls update expiresAt --collection-group=notificationRea
 Push requires an HTTPS deployment. On iPhone and iPad, users must install the
 PWA on their Home Screen before enabling web push.
 
-Because the Firestore database is hosted in `asia-southeast3`, which is not an
-Eventarc trigger region, booking changes are detected by a server-side job in
-`asia-southeast1` every minute. Push alerts can therefore arrive up to one
-minute after an edit.
+The `sendDailyReminders` function runs in `asia-southeast1` at 12:00 and 17:00
+in the `Asia/Bangkok` time zone. At each run it reads only the current day's
+occupied slots and sends one combined court summary to subscribed devices. It
+sends nothing when the day has no bookings. Booking additions, updates,
+removals, and late bookings do not generate immediate push alerts.
+
+The two summary runs use separate notification IDs, so both are delivered even
+when the booking list is unchanged. Notification history and per-device read
+state remain available for seven days.
 
 The app anonymously authenticates browsers before writes. Reads are public;
 writes and uploaded images are validated by `firestore.rules` and
