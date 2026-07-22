@@ -1,9 +1,6 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function validCourt(court) {
-      return court in ['C1', 'C2', 'C3', 'C4', 'C5'];
-    }
     function validImage(image) {
       return image is map
         && image.keys().hasOnly(['name', 'path', 'url'])
@@ -41,6 +38,36 @@ service cloud.firestore {
         && validImages(request.resource.data.qrImages)
         && request.resource.data.updatedAt == request.time
         && request.resource.data.updatedBy == request.auth.uid;
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    match /pushSubscriptions/{userId} {
+      allow read: if false;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['uid', 'token', 'language', 'updatedAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.token is string
+        && request.resource.data.token.size() > 0
+        && request.resource.data.token.size() <= 4096
+        && request.resource.data.language in ['en', 'th']
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/notificationReads/{notificationId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['notificationId', 'readAt', 'expiresAt'])
+        && request.resource.data.notificationId == notificationId
+        && request.resource.data.readAt == request.time
+        && request.resource.data.expiresAt is timestamp;
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

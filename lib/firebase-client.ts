@@ -29,5 +29,5 @@ export function getFirebaseClient() {
       // App Check may already be initialized during Fast Refresh.
     }
   }
-  return { auth: getAuth(app), db: getFirestore(app), storage: getStorage(app) };
+  return { app, auth: getAuth(app), db: getFirestore(app), storage: getStorage(app) };
 }

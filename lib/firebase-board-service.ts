@@ -11,7 +11,7 @@ function slotId(time: SlotTime) {
   return time.replace(":", "");
 }
 
-function waitForUser(auth: Auth) {
+export function waitForUser(auth: Auth) {
   if (auth.currentUser) return Promise.resolve(auth.currentUser);
   return new Promise<NonNullable<Auth["currentUser"]>>((resolve, reject) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {

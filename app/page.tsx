@@ -15,6 +15,7 @@ import {
 } from "react";
 import {
   allowedCourts,
+  allowedSlotTimes,
   allowedImageTypes,
   createDateRange,
   formatDateRange,
@@ -31,6 +32,7 @@ import {
   type SlotTime,
 } from "@/lib/board";
 import { getBoardService } from "@/lib/get-board-service";
+import { NotificationBell } from "@/app/notification-bell";
 
 type SelectedSlot = {
   id: string;
@@ -323,6 +325,7 @@ export default function Home() {
   const [isInstallHelpOpen, setIsInstallHelpOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [retryKey, setRetryKey] = useState(0);
+  const [highlightedSlot, setHighlightedSlot] = useState("");
   const todayRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -537,6 +540,27 @@ export default function Home() {
     todayRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  const showNotificationNotice = useCallback((message: string) => setNotice(message), []);
+  const navigateToNotification = useCallback((dayId: string, time: SlotTime) => {
+    const key = `${dayId}/${time}`;
+    setHighlightedSlot(key);
+    window.setTimeout(() => {
+      document.querySelector<HTMLElement>(`[data-slot-key="${key}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 0);
+    window.setTimeout(() => setHighlightedSlot((current) => current === key ? "" : current), 2500);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated || baseDays.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const dayId = params.get("day");
+    const time = params.get("time") as SlotTime | null;
+    if (dayId && time && allowedSlotTimes.includes(time)) {
+      const timeout = window.setTimeout(() => navigateToNotification(dayId, time), 0);
+      return () => window.clearTimeout(timeout);
+    }
+  }, [baseDays.length, isHydrated, navigateToNotification]);
+
   function renderCourts(slot: Slot) {
     return slot.courts.length > 0 ? slot.courts.join(", ") : "—";
   }
@@ -582,6 +606,8 @@ export default function Home() {
           <h1>{t.appName}</h1>
           <p>{t.subtitle}</p>
         </div>
+        <div className="header-actions">
+          <NotificationBell language={language} onNavigate={navigateToNotification} onNotice={showNotificationNotice} />
         {!isStandalone && (
           <button
             className="install-help-button"
@@ -595,6 +621,7 @@ export default function Home() {
             </svg>
           </button>
         )}
+        </div>
       </header>
 
       <nav className="board-toolbar" aria-label={t.todayShortcut}>
@@ -651,7 +678,11 @@ export default function Home() {
             </h2>
             <div className="slot-list">
               {day.slots.map((slot) => (
-                  <div className="slot-row" key={slot.time}>
+                  <div
+                    className={`slot-row ${highlightedSlot === `${day.id}/${slot.time}` ? "notification-highlight" : ""}`}
+                    key={slot.time}
+                    data-slot-key={`${day.id}/${slot.time}`}
+                  >
                     <time>{slot.time}</time>
                     <span className="court-name">{renderCourts(slot)}</span>
                     <span className="slot-meta">

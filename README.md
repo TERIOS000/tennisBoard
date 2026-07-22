@@ -17,6 +17,7 @@ board.
 - Installable Progressive Web App for mobile and desktop
 - Keyboard-accessible dialogs and responsive layouts
 - Local sample-data mode for development without Firebase
+- Browser push alerts and a seven-day notification inbox
 
 ## Technology
 
@@ -52,8 +53,30 @@ To enable a persistent board shared between users:
    the included security rules:
 
 ```bash
-firebase deploy --only firestore:rules,storage
+firebase deploy --only firestore:rules,storage,functions
 ```
+
+For notifications, upgrade the project to Blaze, enable Cloud Messaging and the
+FCM Registration API, generate a Web Push certificate, and place its public key
+in `NEXT_PUBLIC_FIREBASE_VAPID_KEY`. Install the function dependencies with
+`npm install --prefix functions` before deploying.
+
+Notification documents and read receipts use an `expiresAt` timestamp. Enable
+automatic seven-day cleanup by creating Firestore TTL policies for both
+collection groups:
+
+```bash
+gcloud firestore fields ttls update expiresAt --collection-group=notifications --enable-ttl
+gcloud firestore fields ttls update expiresAt --collection-group=notificationReads --enable-ttl
+```
+
+Push requires an HTTPS deployment. On iPhone and iPad, users must install the
+PWA on their Home Screen before enabling web push.
+
+Because the Firestore database is hosted in `asia-southeast3`, which is not an
+Eventarc trigger region, booking changes are detected by a server-side job in
+`asia-southeast1` every minute. Push alerts can therefore arrive up to one
+minute after an edit.
 
 The app anonymously authenticates browsers before writes. Reads are public;
 writes and uploaded images are validated by `firestore.rules` and
