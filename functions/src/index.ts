@@ -2,25 +2,36 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { bangkokDate, classifyChange, shouldSendLateReminder, type NotificationKind, type SlotData } from "./notification-logic.js";
+import { bangkokDate, classifyChange, courtDelta, shouldSendLateReminder, type NotificationKind, type SlotData } from "./notification-logic.js";
 
 initializeApp();
 const db = getFirestore();
 const retentionMs = 7 * 24 * 60 * 60 * 1000;
 
 type ReminderSlot = { time: string; courts: unknown[] };
-type EventInput = { id: string; type: NotificationKind | "booking-reminder"; dayId: string; time: string; courts: unknown[]; actorUid: string | null; reminderSlots?: ReminderSlot[] };
+type EventInput = { id: string; type: NotificationKind | "booking-reminder"; dayId: string; time: string; courts: unknown[]; actorUid: string | null; reminderSlots?: ReminderSlot[]; addedCourts?: string[]; removedCourts?: string[] };
 
 function text(input: EventInput, language: string) {
   const courtText = input.courts.join(", ");
   const combined = input.reminderSlots?.map((slot) => `${slot.time} ${slot.courts.join(", ")}`).join(" · ");
+  const hasDelta = Boolean(input.addedCourts && input.removedCourts);
+  const englishDelta = [
+    input.addedCourts?.length ? `Added ${input.addedCourts.join(", ")}` : "",
+    input.removedCourts?.length ? `Removed ${input.removedCourts.join(", ")}` : "",
+    input.courts.length ? `Current: ${courtText}` : "",
+  ].filter(Boolean).join(" · ");
+  const thaiDelta = [
+    input.addedCourts?.length ? `เพิ่ม ${input.addedCourts.join(", ")}` : "",
+    input.removedCourts?.length ? `ลบ ${input.removedCourts.join(", ")}` : "",
+    input.courts.length ? `ปัจจุบัน: ${courtText}` : "",
+  ].filter(Boolean).join(" · ");
   if (language === "th") return {
     title: input.type === "booking-reminder" ? "เตือนการจองคอร์ท" : input.type === "booking-cleared" ? "ยกเลิกการจองคอร์ท" : input.type === "booking-created" ? "มีการจองคอร์ทใหม่" : "อัปเดตการจองคอร์ท",
-    body: combined ? `${input.dayId} · ${combined}` : input.type === "booking-cleared" ? `${input.dayId} เวลา ${input.time}` : `${input.dayId} เวลา ${input.time} · ${courtText}`,
+    body: combined ? `${input.dayId} · ${combined}` : hasDelta ? `${input.dayId} เวลา ${input.time} · ${thaiDelta}` : input.type === "booking-cleared" ? `${input.dayId} เวลา ${input.time}` : `${input.dayId} เวลา ${input.time} · ${courtText}`,
   };
   return {
     title: input.type === "booking-reminder" ? "Court booking reminder" : input.type === "booking-cleared" ? "Court booking cleared" : input.type === "booking-created" ? "New court booking" : "Court booking updated",
-    body: combined ? `${input.dayId} · ${combined}` : input.type === "booking-cleared" ? `${input.dayId} at ${input.time}` : `${input.dayId} at ${input.time} · ${courtText}`,
+    body: combined ? `${input.dayId} · ${combined}` : hasDelta ? `${input.dayId} at ${input.time} · ${englishDelta}` : input.type === "booking-cleared" ? `${input.dayId} at ${input.time}` : `${input.dayId} at ${input.time} · ${courtText}`,
   };
 }
 
@@ -79,9 +90,11 @@ export const dispatchBookingChanges = onSchedule({
       if (previous?.updatedAt?.isEqual(current.updatedAt)) continue;
       const type = classifyChange(previous, current);
       if (type) {
+        const delta = courtDelta(previous, current);
         await createAndSend({
           id: `change-${dayId}-${slot.id}-${current.updatedAt.toMillis()}`,
           type, dayId, time: current.time, courts: current.courts ?? [], actorUid: current.updatedBy ?? null,
+          ...delta,
         });
       }
       if ((current.courts?.length ?? 0) > 0 && shouldSendLateReminder(dayId, current.time, now)) {

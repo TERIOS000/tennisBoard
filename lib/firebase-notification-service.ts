@@ -75,6 +75,8 @@ export class FirebaseNotificationService {
             actorUid: typeof data.actorUid === "string" ? data.actorUid : null,
             read: false,
             reminderSlots: Array.isArray(data.reminderSlots) ? data.reminderSlots : undefined,
+            addedCourts: Array.isArray(data.addedCourts) ? data.addedCourts : undefined,
+            removedCourts: Array.isArray(data.removedCourts) ? data.removedCourts : undefined,
           } satisfies BoardNotification]];
         }));
         emit();

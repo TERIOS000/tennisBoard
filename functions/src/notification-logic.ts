@@ -1,15 +1,24 @@
 export type SlotData = { time?: string; courts?: unknown[]; qrImages?: unknown[]; updatedBy?: string };
 export type NotificationKind = "booking-created" | "booking-updated" | "booking-cleared";
 
-function occupied(slot: SlotData | undefined) { return Boolean(slot?.courts?.length); }
-function signature(slot: SlotData | undefined) {
-  return JSON.stringify({ courts: slot?.courts ?? [], qrImages: slot?.qrImages ?? [] });
+function courtNames(slot: SlotData | undefined) {
+  return (slot?.courts ?? []).filter((court): court is string => typeof court === "string");
+}
+
+export function courtDelta(before: SlotData | undefined, after: SlotData | undefined) {
+  const previous = new Set(courtNames(before));
+  const current = new Set(courtNames(after));
+  return {
+    addedCourts: [...current].filter((court) => !previous.has(court)).sort(),
+    removedCourts: [...previous].filter((court) => !current.has(court)).sort(),
+  };
 }
 
 export function classifyChange(before: SlotData | undefined, after: SlotData | undefined): NotificationKind | null {
-  if (signature(before) === signature(after)) return null;
-  if (!occupied(before) && occupied(after)) return "booking-created";
-  if (occupied(before) && !occupied(after)) return "booking-cleared";
+  const { addedCourts, removedCourts } = courtDelta(before, after);
+  if (!addedCourts.length && !removedCourts.length) return null;
+  if (!courtNames(before).length && courtNames(after).length) return "booking-created";
+  if (courtNames(before).length && !courtNames(after).length) return "booking-cleared";
   return "booking-updated";
 }
 
