@@ -5,6 +5,14 @@ which courts are reserved for each evening time slot and lets group members
 update reservations and attach payment or booking QR images from one shared
 board.
 
+## About This Project
+
+CourtRao was created for a tennis group that plays at the Thammasat University
+tennis courts. It gives members one shared place to check weekly court
+reservations, coordinate evening playing times, and keep booking or payment QR
+images together. The goal is to make organizing group sessions easier and
+reduce confusion about which courts and time slots have already been reserved.
+
 ## Features
 
 - Seven-day schedule based on the `Asia/Bangkok` time zone
