@@ -52,7 +52,11 @@ async function createAndSend(input: EventInput) {
     if (typeof data.token !== "string") return;
     const message = text(input, data.language);
     try {
-      await getMessaging().send({ token: data.token, notification: message, data: { link, notificationId: input.id }, webpush: { fcmOptions: { link } } });
+      await getMessaging().send({
+        token: data.token,
+        data: { title: message.title, body: message.body, link, notificationId: input.id },
+        webpush: { headers: { Urgency: "high" }, fcmOptions: { link } },
+      });
     } catch (error) {
       const code = (error as { code?: string }).code ?? "";
       if (code.includes("registration-token-not-registered") || code.includes("invalid-registration")) await item.ref.delete();
