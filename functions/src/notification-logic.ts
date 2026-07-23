@@ -1,6 +1,7 @@
 export type SlotData = { time?: string; courts?: unknown[]; qrImages?: unknown[]; updatedBy?: string };
 export type NotificationKind = "booking-created" | "booking-updated" | "booking-cleared";
-export const dailyReminderSchedule = "0 12,17 * * *";
+export const morningReminderSchedule = "0 9 * * *";
+export const afternoonReminderSchedule = "30 16 * * *";
 
 export function occupiedReminderSlots(slots: SlotData[]) {
   return slots.flatMap((slot) => slot.time && slot.courts?.length

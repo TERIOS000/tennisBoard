@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bangkokDate, bangkokHour, classifyChange, courtDelta, dailyReminderId, dailyReminderSchedule, occupiedReminderSlots } from "./notification-logic.js";
+import { afternoonReminderSchedule, bangkokDate, bangkokHour, classifyChange, courtDelta, dailyReminderId, morningReminderSchedule, occupiedReminderSlots } from "./notification-logic.js";
 
 describe("notification logic", () => {
   it("classifies create, update, clear, and unchanged writes", () => {
@@ -21,13 +21,14 @@ describe("notification logic", () => {
   });
   it("uses the Bangkok calendar date", () => expect(bangkokDate(new Date("2026-07-21T18:00:00Z"))).toBe("2026-07-22"));
   it("uses the Bangkok hour for distinct daily summary IDs", () => {
-    expect(bangkokHour(new Date("2026-07-22T05:00:00Z"))).toBe("12");
-    expect(bangkokHour(new Date("2026-07-22T10:00:00Z"))).toBe("17");
-    expect(dailyReminderId("2026-07-22", "12")).toBe("daily-reminder-2026-07-22-12");
-    expect(dailyReminderId("2026-07-22", "17")).toBe("daily-reminder-2026-07-22-17");
+    expect(bangkokHour(new Date("2026-07-22T02:00:00Z"))).toBe("09");
+    expect(bangkokHour(new Date("2026-07-22T09:30:00Z"))).toBe("16");
+    expect(dailyReminderId("2026-07-22", "09")).toBe("daily-reminder-2026-07-22-09");
+    expect(dailyReminderId("2026-07-22", "16")).toBe("daily-reminder-2026-07-22-16");
   });
-  it("schedules noon and 5 PM summaries", () => {
-    expect(dailyReminderSchedule).toBe("0 12,17 * * *");
+  it("schedules 9 AM and 4:30 PM summaries", () => {
+    expect(morningReminderSchedule).toBe("0 9 * * *");
+    expect(afternoonReminderSchedule).toBe("30 16 * * *");
   });
   it("keeps only occupied slots and sorts them by time", () => {
     expect(occupiedReminderSlots([

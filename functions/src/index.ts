@@ -2,7 +2,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { bangkokDate, bangkokHour, dailyReminderId, dailyReminderSchedule, occupiedReminderSlots, type NotificationKind, type SlotData } from "./notification-logic.js";
+import { afternoonReminderSchedule, bangkokDate, bangkokHour, dailyReminderId, morningReminderSchedule, occupiedReminderSlots, type NotificationKind, type SlotData } from "./notification-logic.js";
 
 initializeApp();
 const db = getFirestore();
@@ -65,11 +65,7 @@ async function createAndSend(input: EventInput) {
   }));
 }
 
-export const sendDailyReminders = onSchedule({
-  schedule: dailyReminderSchedule,
-  timeZone: "Asia/Bangkok",
-  region: "asia-southeast1",
-}, async () => {
+async function sendDailyReminder() {
   const now = new Date();
   const dayId = bangkokDate(now);
   const runHour = bangkokHour(now);
@@ -80,5 +76,19 @@ export const sendDailyReminders = onSchedule({
     id: dailyReminderId(dayId, runHour), type: "booking-reminder", dayId,
     time: occupied[0].time, courts: [], reminderSlots: occupied, actorUid: null,
   });
-});
- 
+}
+
+const reminderOptions = {
+  timeZone: "Asia/Bangkok",
+  region: "asia-southeast1",
+} as const;
+
+export const sendMorningReminder = onSchedule({
+  ...reminderOptions,
+  schedule: morningReminderSchedule,
+}, sendDailyReminder);
+
+export const sendAfternoonReminder = onSchedule({
+  ...reminderOptions,
+  schedule: afternoonReminderSchedule,
+}, sendDailyReminder);

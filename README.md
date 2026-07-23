@@ -25,7 +25,7 @@ reduce confusion about which courts and time slots have already been reserved.
 - Installable Progressive Web App for mobile and desktop
 - Keyboard-accessible dialogs and responsive layouts
 - Local sample-data mode for development without Firebase
-- Browser push summaries at 12:00 and 17:00 Asia/Bangkok, plus a seven-day notification inbox
+- Browser push summaries at 09:00 and 16:30 Asia/Bangkok, plus a seven-day notification inbox
 
 ## Technology
 
@@ -82,8 +82,9 @@ gcloud firestore fields ttls update expiresAt --collection-group=notificationRea
 Push requires an HTTPS deployment. On iPhone and iPad, users must install the
 PWA on their Home Screen before enabling web push.
 
-The `sendDailyReminders` function runs in `asia-southeast1` at 12:00 and 17:00
-in the `Asia/Bangkok` time zone. At each run it reads only the current day's
+The `sendMorningReminder` and `sendAfternoonReminder` functions run in
+`asia-southeast1` at 09:00 and 16:30 in the `Asia/Bangkok` time zone. At each
+run they read only the current day's
 occupied slots and sends one combined court summary to subscribed devices. It
 sends nothing when the day has no bookings. Booking additions, updates,
 removals, and late bookings do not generate immediate push alerts.
