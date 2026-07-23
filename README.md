@@ -35,11 +35,23 @@ reduce confusion about which courts and time slots have already been reserved.
   Cloud Functions, and App Check
 - Vitest for domain tests
 
+## Project Structure
+
+```text
+.
+|-- frontend/  # Next.js web application
+|-- backend/   # Firebase Cloud Functions
+|-- firebase.json
+|-- firestore.rules
+`-- storage.rules
+```
+
 ## Getting Started
 
-Install dependencies and start the development server:
+Install the frontend dependencies and start the development server:
 
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
@@ -48,12 +60,19 @@ Open [http://localhost:3000](http://localhost:3000). With no Firebase
 configuration, the app runs locally with in-memory sample data. Changes made in
 this mode are not shared and disappear when the page is reloaded.
 
+Install the backend dependencies separately:
+
+```bash
+cd backend
+npm install
+```
+
 ## Firebase Setup
 
 To enable a persistent board shared between users:
 
 1. Create a Firebase web project.
-2. Copy `.env.example` to `.env.local` and provide every
+2. Copy `frontend/.env.example` to `frontend/.env.local` and provide every
    `NEXT_PUBLIC_FIREBASE_*` value.
 3. Enable Cloud Firestore, Cloud Storage, and Anonymous Authentication.
 4. Register a reCAPTCHA v3 app for App Check and set
@@ -68,7 +87,7 @@ firebase deploy --only firestore:rules,storage,functions
 For notifications, upgrade the project to Blaze, enable Cloud Messaging and the
 FCM Registration API, generate a Web Push certificate, and place its public key
 in `NEXT_PUBLIC_FIREBASE_VAPID_KEY`. Install the function dependencies with
-`npm install --prefix functions` before deploying.
+`npm install --prefix backend` before deploying.
 
 Notification documents and read receipts use an `expiresAt` timestamp. Enable
 automatic seven-day cleanup by creating Firestore TTL policies for both
@@ -100,12 +119,27 @@ shared schedule, so configure and share deployments accordingly.
 
 ## Available Scripts
 
+Frontend commands (run from `frontend/`):
+
 ```bash
 npm run dev     # Start the development server
 npm run build   # Create a production build
 npm run start   # Run the production build
 npm run lint    # Run ESLint
 npm test        # Run the test suite once
+```
+
+Backend commands (run from `backend/`):
+
+```bash
+npm run build   # Compile the Cloud Functions TypeScript
+npm test        # Run the backend test suite once
+```
+
+Firebase deployment commands are run from the repository root:
+
+```bash
+firebase deploy --only firestore:rules,storage,functions
 ```
 
 ## License
