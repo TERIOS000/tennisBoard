@@ -3,7 +3,7 @@ import { getMessaging, getToken, isSupported, onMessage } from "firebase/messagi
 import type { Language } from "@/lib/board";
 import { getFirebaseClient } from "@/lib/firebase-client";
 import { waitForUser } from "@/lib/firebase-board-service";
-import { isActiveNotification, type BoardNotification, type NotificationType } from "@/lib/notification";
+import { isActiveNotification, type BoardNotification } from "@/lib/notification";
 
 export type NotificationSubscription = {
   onData: (notifications: BoardNotification[]) => void;
@@ -46,37 +46,36 @@ export class FirebaseNotificationService {
   subscribe(subscription: NotificationSubscription) {
     let events = new Map<string, BoardNotification>();
     let readIds = new Set<string>();
-    let currentUid = "";
     let stopEvents = () => {};
     let stopReads = () => {};
     let stopped = false;
 
     const emit = () => subscription.onData([...events.values()]
-      .filter((item) => item.actorUid !== currentUid && isActiveNotification(item.expiresAt))
+      .filter((item) => isActiveNotification(item.expiresAt))
       .map((item) => ({ ...item, read: readIds.has(item.id) }))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()));
 
     void waitForUser(this.client.auth).then((user) => {
       if (stopped) return;
-      currentUid = user.uid;
       const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       stopEvents = onSnapshot(query(collection(this.client.db, "notifications"), where("createdAt", ">=", cutoff)), (snapshot) => {
         events = new Map(snapshot.docs.flatMap((item) => {
           const data = item.data();
-          if (!(data.createdAt instanceof Timestamp) || !(data.expiresAt instanceof Timestamp)) return [];
+          if (
+            data.type !== "booking-reminder" ||
+            !(data.createdAt instanceof Timestamp) ||
+            !(data.expiresAt instanceof Timestamp) ||
+            !Array.isArray(data.reminderSlots)
+          ) return [];
           return [[item.id, {
             id: item.id,
-            type: data.type as NotificationType,
+            type: "booking-reminder",
             dayId: data.dayId,
             time: data.time,
-            courts: Array.isArray(data.courts) ? data.courts : [],
             createdAt: data.createdAt.toDate(),
             expiresAt: data.expiresAt.toDate(),
-            actorUid: typeof data.actorUid === "string" ? data.actorUid : null,
             read: false,
-            reminderSlots: Array.isArray(data.reminderSlots) ? data.reminderSlots : undefined,
-            addedCourts: Array.isArray(data.addedCourts) ? data.addedCourts : undefined,
-            removedCourts: Array.isArray(data.removedCourts) ? data.removedCourts : undefined,
+            reminderSlots: data.reminderSlots,
           } satisfies BoardNotification]];
         }));
         emit();

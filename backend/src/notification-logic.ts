@@ -1,5 +1,4 @@
-export type SlotData = { time?: string; courts?: unknown[]; qrImages?: unknown[]; updatedBy?: string };
-export type NotificationKind = "booking-created" | "booking-updated" | "booking-cleared";
+export type SlotData = { time?: string; courts?: unknown[] };
 export const morningReminderSchedule = "0 9 * * *";
 export const afternoonReminderSchedule = "30 16 * * *";
 
@@ -11,27 +10,6 @@ export function occupiedReminderSlots(slots: SlotData[]) {
 
 export function dailyReminderId(dayId: string, hour: string) {
   return `daily-reminder-${dayId}-${hour}`;
-}
-
-function courtNames(slot: SlotData | undefined) {
-  return (slot?.courts ?? []).filter((court): court is string => typeof court === "string");
-}
-
-export function courtDelta(before: SlotData | undefined, after: SlotData | undefined) {
-  const previous = new Set(courtNames(before));
-  const current = new Set(courtNames(after));
-  return {
-    addedCourts: [...current].filter((court) => !previous.has(court)).sort(),
-    removedCourts: [...previous].filter((court) => !current.has(court)).sort(),
-  };
-}
-
-export function classifyChange(before: SlotData | undefined, after: SlotData | undefined): NotificationKind | null {
-  const { addedCourts, removedCourts } = courtDelta(before, after);
-  if (!addedCourts.length && !removedCourts.length) return null;
-  if (!courtNames(before).length && courtNames(after).length) return "booking-created";
-  if (courtNames(before).length && !courtNames(after).length) return "booking-cleared";
-  return "booking-updated";
 }
 
 export function bangkokDate(now: Date) {

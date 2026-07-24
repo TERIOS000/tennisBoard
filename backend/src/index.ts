@@ -2,40 +2,34 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { afternoonReminderSchedule, bangkokDate, bangkokHour, dailyReminderId, morningReminderSchedule, occupiedReminderSlots, type NotificationKind, type SlotData } from "./notification-logic.js";
+import { afternoonReminderSchedule, bangkokDate, bangkokHour, dailyReminderId, morningReminderSchedule, occupiedReminderSlots, type SlotData } from "./notification-logic.js";
 
 initializeApp();
 const db = getFirestore();
 const retentionMs = 7 * 24 * 60 * 60 * 1000;
 
 type ReminderSlot = { time: string; courts: unknown[] };
-type EventInput = { id: string; type: NotificationKind | "booking-reminder"; dayId: string; time: string; courts: unknown[]; actorUid: string | null; reminderSlots?: ReminderSlot[]; addedCourts?: string[]; removedCourts?: string[] };
+type ReminderInput = {
+  id: string;
+  type: "booking-reminder";
+  dayId: string;
+  time: string;
+  reminderSlots: ReminderSlot[];
+};
 
-function text(input: EventInput, language: string) {
-  const courtText = input.courts.join(", ");
-  const combined = input.reminderSlots?.map((slot) => `${slot.time} ${slot.courts.join(", ")}`).join(" · ");
-  const hasDelta = Boolean(input.addedCourts && input.removedCourts);
-  const englishDelta = [
-    input.addedCourts?.length ? `Added ${input.addedCourts.join(", ")}` : "",
-    input.removedCourts?.length ? `Removed ${input.removedCourts.join(", ")}` : "",
-    input.courts.length ? `Current: ${courtText}` : "",
-  ].filter(Boolean).join(" · ");
-  const thaiDelta = [
-    input.addedCourts?.length ? `เพิ่ม ${input.addedCourts.join(", ")}` : "",
-    input.removedCourts?.length ? `ลบ ${input.removedCourts.join(", ")}` : "",
-    input.courts.length ? `ปัจจุบัน: ${courtText}` : "",
-  ].filter(Boolean).join(" · ");
+function reminderText(input: ReminderInput, language: string) {
+  const combined = input.reminderSlots.map((slot) => `${slot.time} ${slot.courts.join(", ")}`).join(" · ");
   if (language === "th") return {
-    title: input.type === "booking-reminder" ? "เตือนการจองคอร์ท" : input.type === "booking-cleared" ? "ยกเลิกการจองคอร์ท" : input.type === "booking-created" ? "มีการจองคอร์ทใหม่" : "อัปเดตการจองคอร์ท",
-    body: combined ? `${input.dayId} · ${combined}` : hasDelta ? `${input.dayId} เวลา ${input.time} · ${thaiDelta}` : input.type === "booking-cleared" ? `${input.dayId} เวลา ${input.time}` : `${input.dayId} เวลา ${input.time} · ${courtText}`,
+    title: "เตือนการจองคอร์ท",
+    body: `${input.dayId} · ${combined}`,
   };
   return {
-    title: input.type === "booking-reminder" ? "Court booking reminder" : input.type === "booking-cleared" ? "Court booking cleared" : input.type === "booking-created" ? "New court booking" : "Court booking updated",
-    body: combined ? `${input.dayId} · ${combined}` : hasDelta ? `${input.dayId} at ${input.time} · ${englishDelta}` : input.type === "booking-cleared" ? `${input.dayId} at ${input.time}` : `${input.dayId} at ${input.time} · ${courtText}`,
+    title: "Court booking reminder",
+    body: `${input.dayId} · ${combined}`,
   };
 }
 
-async function createAndSend(input: EventInput) {
+async function createAndSend(input: ReminderInput) {
   const ref = db.collection("notifications").doc(input.id);
   const created = await db.runTransaction(async (transaction) => {
     if ((await transaction.get(ref)).exists) return false;
@@ -47,10 +41,10 @@ async function createAndSend(input: EventInput) {
 
   const subscriptions = await db.collection("pushSubscriptions").get();
   const link = `/?notification=${encodeURIComponent(input.id)}&day=${input.dayId}&time=${input.time}`;
-  await Promise.all(subscriptions.docs.filter((item) => item.id !== input.actorUid).map(async (item) => {
+  await Promise.all(subscriptions.docs.map(async (item) => {
     const data = item.data();
     if (typeof data.token !== "string") return;
-    const message = text(input, data.language);
+    const message = reminderText(input, data.language);
     try {
       await getMessaging().send({
         token: data.token,
@@ -74,7 +68,7 @@ async function sendDailyReminder() {
   if (!occupied.length) return;
   await createAndSend({
     id: dailyReminderId(dayId, runHour), type: "booking-reminder", dayId,
-    time: occupied[0].time, courts: [], reminderSlots: occupied, actorUid: null,
+    time: occupied[0].time, reminderSlots: occupied,
   });
 }
 
