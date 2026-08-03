@@ -118,30 +118,12 @@ button {
 @keyframes notification-highlight { 0%, 45% { background: #fff2b8; } 100% { background: transparent; } }
 
 .language-switcher {
-  display: flex;
   flex: 0 0 auto;
-  gap: 4px;
-  margin: 0;
-  padding: 4px;
-  border: 1px solid #bdc9c0;
-  border-radius: 10px;
-  background: white;
-}
-
-.language-switcher button {
   min-width: 48px;
   min-height: 40px;
   padding: 6px 10px;
-  border: 0;
   border-radius: 7px;
-  background: transparent;
-  color: #48534b;
   font-weight: 700;
-}
-
-.language-switcher button.active {
-  background: #198754;
-  color: white;
 }
 
 .board-toolbar {
@@ -193,11 +175,10 @@ button {
 }
 
 .board-toolbar .language-switcher {
-  padding: 2px;
-}
-
-.board-toolbar .language-switcher button {
   min-height: 38px;
+  border-color: #198754;
+  background-color: #e8f6ed;
+  color: #48534b;
 }
 
 .day-list {
@@ -272,7 +253,7 @@ button {
   border-bottom: 0;
 }
 
-.language-switcher button:focus-visible,
+.language-switcher:focus-visible,
 .header-icon-button:focus-visible,
 .install-help-button:focus-visible,
 .board-toolbar button:focus-visible,
@@ -606,7 +587,7 @@ button {
   white-space: nowrap;
 }
 
-.language-switcher button,
+.language-switcher,
 .header-icon-button,
 .install-help-button,
 .board-toolbar > button,
@@ -619,7 +600,7 @@ button {
     color 150ms ease, transform 150ms ease;
 }
 
-.language-switcher button:active,
+.language-switcher:active,
 .header-icon-button:active,
 .install-help-button:active,
 .board-toolbar > button:active,

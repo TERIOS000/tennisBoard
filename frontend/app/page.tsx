@@ -392,7 +392,8 @@ export default function Home() {
     return () => window.clearTimeout(timeout);
   }, [notice]);
 
-  function changeLanguage(nextLanguage: Language) {
+  function changeLanguage() {
+    const nextLanguage: Language = language === "en" ? "th" : "en";
     window.localStorage.setItem(languageStorageKey, nextLanguage);
     window.dispatchEvent(new Event(languageChangeEvent));
   }
@@ -627,24 +628,14 @@ export default function Home() {
       <nav className="board-toolbar" aria-label={t.todayShortcut}>
         <span>{formatDateRange(boardDays, language)}</span>
         <div className="toolbar-actions">
-          <fieldset className="language-switcher" aria-label={t.language}>
           <button
             type="button"
-            className={language === "en" ? "active" : ""}
-            aria-pressed={language === "en"}
-            onClick={() => changeLanguage("en")}
+            className="language-switcher"
+            aria-label={language === "en" ? "Switch to Thai" : "เปลี่ยนเป็นภาษาอังกฤษ"}
+            onClick={changeLanguage}
           >
-            EN
+            {language === "en" ? "EN" : "TH"}
           </button>
-          <button
-            type="button"
-            className={language === "th" ? "active" : ""}
-            aria-pressed={language === "th"}
-            onClick={() => changeLanguage("th")}
-          >
-            ไทย
-          </button>
-          </fieldset>
           <button type="button" onClick={scrollToToday}>
             {t.todayShortcut}
           </button>
