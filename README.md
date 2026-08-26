@@ -108,6 +108,14 @@ occupied slots and sends one combined court summary to subscribed devices. It
 sends nothing when the day has no bookings. Booking additions, updates,
 removals, and late bookings do not generate immediate push alerts.
 
+The `cleanupExpiredDays` function runs in `asia-southeast1` daily at 00:45 in
+the `Asia/Bangkok` time zone. It deletes every court slot document dated
+before today along with the QR images those documents reference, keeping
+storage and Firestore bounded to the visible week. The board only ever reads
+today through the next six days, so deletions are invisible to users.
+Notification history is unaffected because it expires separately through its
+own seven-day TTL policy.
+
 The two summary runs use separate notification IDs, so both are delivered even
 when the booking list is unchanged. Notification history and per-device read
 state remain available for seven days.

@@ -1,7 +1,9 @@
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
+import { getStorage } from "firebase-admin/storage";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { chunk, cleanupSchedule, isStaleDay, slotParentDay } from "./cleanup-logic.js";
 import { afternoonReminderSchedule, bangkokDate, bangkokHour, dailyReminderId, morningReminderSchedule, occupiedReminderSlots, type SlotData } from "./notification-logic.js";
 
 initializeApp();
@@ -86,3 +88,54 @@ export const sendAfternoonReminder = onSchedule({
   ...reminderOptions,
   schedule: afternoonReminderSchedule,
 }, sendDailyReminder);
+
+type StoredImagePath = { path?: unknown };
+
+async function deleteStorageObjects(paths: string[]) {
+  const bucket = getStorage().bucket();
+  await Promise.allSettled(paths.map((path) => bucket.file(path).delete({ ignoreNotFound: true })));
+}
+
+async function runCleanup() {
+  const todayId = bangkokDate(new Date());
+  const snapshot = await db.collectionGroup("slots").get();
+  const staleDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
+  let malformedPaths = 0;
+  for (const doc of snapshot.docs) {
+    const dayId = slotParentDay(doc.ref.path);
+    if (dayId === null) {
+      malformedPaths += 1;
+      continue;
+    }
+    if (isStaleDay(dayId, todayId)) staleDocs.push(doc);
+  }
+
+  let imageCount = 0;
+  for (const doc of staleDocs) {
+    const images = ((doc.data().qrImages ?? []) as StoredImagePath[])
+      .filter((image): image is { path: string } => typeof image?.path === "string");
+    imageCount += images.length;
+    await deleteStorageObjects(images.map((image) => image.path));
+  }
+
+  const parentDays = new Set(
+    staleDocs.map((doc) => doc.ref.parent.parent?.path).filter((path): path is string => Boolean(path))
+  );
+  await Promise.allSettled([...parentDays].map((dayPath) => db.doc(dayPath).delete()));
+
+  for (const group of chunk(staleDocs)) {
+    const batch = db.batch();
+    for (const doc of group) batch.delete(doc.ref);
+    await batch.commit();
+  }
+
+  console.log(
+    `cleanupExpiredDays: today=${todayId} slotsDeleted=${staleDocs.length} ` +
+    `imagesDeleted=${imageCount} dayDocsDeleted=${parentDays.size} skippedMalformed=${malformedPaths}`
+  );
+}
+
+export const cleanupExpiredDays = onSchedule({
+  ...reminderOptions,
+  schedule: cleanupSchedule,
+}, runCleanup);
