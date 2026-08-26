@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase-admin/app";
+import { getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 import { getStorage } from "firebase-admin/storage";
@@ -6,7 +6,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { chunk, cleanupSchedule, isStaleDay, slotParentDay } from "./cleanup-logic.js";
 import { afternoonReminderSchedule, bangkokDate, bangkokHour, dailyReminderId, morningReminderSchedule, occupiedReminderSlots, type SlotData } from "./notification-logic.js";
 
-initializeApp();
+if (!getApps().length) initializeApp();
 const db = getFirestore();
 const retentionMs = 7 * 24 * 60 * 60 * 1000;
 
@@ -20,14 +20,14 @@ type ReminderInput = {
 };
 
 function reminderText(input: ReminderInput, language: string) {
-  const combined = input.reminderSlots.map((slot) => `${slot.time} ${slot.courts.join(", ")}`).join(" · ");
+  const combined = input.reminderSlots.map((slot) => `${slot.time} ${slot.courts.join(", ")}`).join("\n");
   if (language === "th") return {
     title: "เตือนการจองคอร์ท",
-    body: `${input.dayId} · ${combined}`,
+    body: `${input.dayId}\n${combined}`,
   };
   return {
     title: "Court booking reminder",
-    body: `${input.dayId} · ${combined}`,
+    body: `${input.dayId}\n${combined}`,
   };
 }
 
@@ -96,7 +96,7 @@ async function deleteStorageObjects(paths: string[]) {
   await Promise.allSettled(paths.map((path) => bucket.file(path).delete({ ignoreNotFound: true })));
 }
 
-async function runCleanup() {
+export async function runCleanup() {
   const todayId = bangkokDate(new Date());
   const snapshot = await db.collectionGroup("slots").get();
   const staleDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
